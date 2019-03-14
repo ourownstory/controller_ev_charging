@@ -11,18 +11,14 @@ import gym
 import sys
 sys.path.append('/home/ourownstory/github/gym_ev_charging')
 import gym_ev_charging
-
-import scipy.signal
 import os
-import time
-import inspect
 from utils.general import get_logger, Progbar, export_plot
 import config_pg
 from gym_ev_charging import config_gym
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--env_name', required=True, type=str,
-                    choices=['dummy', 'ev'])
+parser.add_argument('--config', required=True, type=str,
+                    choices=['default', 'test'])
 
 parser.add_argument('--env_config', required=True, type=str,
                     choices=['default', 'test'])
@@ -673,9 +669,11 @@ class PG(object):
 
 if __name__ == '__main__':
     args = parser.parse_args()
-    config = config_pg.get_config(args.env_name, args.use_baseline)
-    env = gym.make(config.env_name)
-    env.build(config_gym.get_config(args.env_config))
+    config = config_pg.get_config(args.config, args.use_baseline, args.env_config)
+    env_config = config_gym.get_config(args.env_config)
+    env = gym.make(env_config.env_name)
+    env.build(env_config)
+
     # train model
     model = PG(env, config)
     model.run()
