@@ -217,7 +217,7 @@ class Controller(ABC):
         """
         # TODO: save plot
         pass
-        # env = gym.make(self.config.env_name)
+        # env = gym.make(self.config.ENV_NAME)
         # env = gym.wrappers.Monitor(env, self.config.record_path, video_callable=lambda x: True, resume=True)
         # self.evaluate(env, 1)
 

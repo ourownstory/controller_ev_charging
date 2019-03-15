@@ -4,8 +4,8 @@ import tensorflow as tf
 
 
 class Random(Controller):
-    # def __init__(self, max_power, min_power, num_power_steps, num_stations):
-    #     Controller.__init__(self, max_power, min_power, num_power_steps, num_stations)
+    # def __init__(self, MAX_POWER, MIN_POWER, NUM_POWER_STEPS, num_stations):
+    #     Controller.__init__(self, MAX_POWER, MIN_POWER, NUM_POWER_STEPS, num_stations)
     def __init__(self, env, config):
         """
         Initialize a Baseline Controller

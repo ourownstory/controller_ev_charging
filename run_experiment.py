@@ -13,7 +13,7 @@ def run_experiment():
     args = parser.parse_args()
     config = get_controller_config(args.controller, args.env_config)
     env_config = get_gym_config(args.env_config)
-    env = gym.make(env_config.env_name)
+    env = gym.make(env_config.ENV_NAME)
     env.build(env_config)
 
     model = getattr(controller, config.controller_name)(env, config)
