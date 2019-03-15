@@ -247,6 +247,8 @@ class Controller(ABC):
         # # TODO env.set_to_eval() -> then set num_episodes to 1 (one super long one)
         self.mode = 'eval'
         if env == None: env = self.env
+        env.evaluation_mode = True
+        env.reset()
         paths, rewards = self.sample_path(env, num_episodes)
         avg_reward = np.mean(rewards)
         sigma_reward = np.sqrt(np.var(rewards) / len(rewards))

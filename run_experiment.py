@@ -3,7 +3,8 @@ import gym
 # import sys
 # sys.path.append('/home/ourownstory/github/gym_ev_charging')
 # import gym_ev_charging
-
+import sys
+sys.path.append('../gym_ev_charging')
 from config_controller import get_config as get_controller_config
 from gym_ev_charging.config_gym import get_config as get_gym_config
 import controller
