@@ -17,6 +17,8 @@ class config_default:
         self.record_path = self.output_path
         self.record_freq = 0
         self.summary_freq = 1
+        self.show_plots = True
+        self.plot_freq = 10
 
         # model and training config
         self.num_batches = 20  # number of batches trained on
