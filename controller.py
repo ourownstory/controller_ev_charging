@@ -254,7 +254,7 @@ class Controller(ABC):
                             label='Fully Charged')
 
             axarr[stn].set(ylabel="Power [kW] for Station #{}".format(stn))
-            axarr[stn].set_ylim(min(env.min_power), max(env.max_power)*1.1)
+            axarr[stn].set_ylim(env.min_power, env.max_power*1.1)
 
 
             axarr2_stn.set(ylabel="Vehicle's charge [kWh]")
