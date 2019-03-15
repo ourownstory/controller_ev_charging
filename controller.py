@@ -18,7 +18,7 @@ class Controller(ABC):
 
         # must be defined by subclasses:
         self.sampled_action = None
-        self.determ_action = None
+        # self.determ_action = None
 
         # directory for training outputs
         if not os.path.exists(config.output_path):
@@ -43,7 +43,7 @@ class Controller(ABC):
 
     @abstractmethod
     def add_action_op(self):
-        # needs to add self.sampled_action and self.determ_action
+        # needs to add self.sampled_action (and maybe self.determ_action)
         pass
 
     # @abstractmethod
@@ -177,16 +177,14 @@ class Controller(ABC):
             for step in range(self.config.max_ep_len):
                 states.append(state)
 
+                fetch_action = self.sampled_action
+                # # TODO decide whether to remove or not
+                # if self.mode == 'train':
+                #     fetch_action = self.sampled_action
+                # elif self.mode == 'eval':
+                #     fetch_action = self.determ_action
+
                 feed = {self.observation_placeholder: states[-1][None]}
-
-                # # TODO implement better
-                # fetch_action = self.sampled_action
-
-                if self.mode == 'train':
-                    fetch_action = self.sampled_action
-                elif self.mode == 'eval':
-                    fetch_action = self.determ_action
-
                 action = self.sess.run(fetch_action, feed_dict=feed)[0]
 
                 state, reward, done, info = env.step(action)

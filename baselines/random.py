@@ -14,13 +14,21 @@ class Random(Controller):
         self.add_action_op()
 
     def train(self):
+        # note: action is deterministic and not trained.
+        print("skipping training for purely random baseline")
         pass
 
     def add_action_op(self):
-        # not implementing self.sampled_action because only used for training
-        self.determ_action = tf.random_uniform(
+        # note: action is deterministic and not trained.
+        self.sampled_action = tf.random_uniform(
             shape=(self.config.batch_size,),
             minval=0,
             maxval=self.action_dim,
             dtype=tf.int32,
         )
+        # self.determ_action = tf.random_uniform(
+        #     shape=(self.config.batch_size,),
+        #     minval=0,
+        #     maxval=self.action_dim,
+        #     dtype=tf.int32,
+        # )

@@ -120,7 +120,7 @@ class PG(Controller):
           output_activation=None
       )
       self.sampled_action = self.sample_action_discrete(action_logits)
-      self.determ_action = tf.argmax(action_logits, axis=-1)
+      # self.determ_action = tf.argmax(action_logits, axis=-1)
 
       self.logprob = -tf.nn.sparse_softmax_cross_entropy_with_logits(
         labels=self.action_placeholder,
@@ -144,7 +144,7 @@ class PG(Controller):
       )
       std = tf.exp(log_std)
       self.sampled_action = self.sample_action_continuous( action_means, std)
-      self.determ_action = action_means
+      # self.determ_action = action_means
 
       self.logprob = tf.contrib.distributions.MultivariateNormalDiag(
         loc=action_means,

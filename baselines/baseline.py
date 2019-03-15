@@ -14,12 +14,15 @@ class BaselineZero(Controller):
         self.add_action_op()
 
     def train(self):
+        # note: action is deterministic and not trained.
+        print("skipping training for deterministic baseline 0")
         pass
 
     def add_action_op(self):
         assert self.discrete
-        # not implementing self.sampled_action because only used for training
-        self.determ_action = tf.constant(np.zeros(self.config.batch_size))
+        # note: action is deterministic and not trained.
+        self.sampled_action = tf.constant(np.zeros(self.config.batch_size))
+        # self.determ_action = tf.constant(np.zeros(self.config.batch_size))
 
 
 class BaselineOne(Controller):
@@ -33,9 +36,12 @@ class BaselineOne(Controller):
         self.add_action_op()
 
     def train(self):
+        # note: action is deterministic and not trained.
+        print("skipping training for deterministic baseline 1")
         pass
 
     def add_action_op(self):
         assert self.discrete
-        # not implementing self.sampled_action because only used for training
-        self.determ_action = tf.constant((self.action_dim - 1) + np.zeros(self.config.batch_size))
+        # note: action is deterministic and not trained.
+        self.sampled_action = tf.constant((self.action_dim - 1) + np.zeros(self.config.batch_size))
+        # self.determ_action = tf.constant((self.action_dim - 1) + np.zeros(self.config.batch_size))
