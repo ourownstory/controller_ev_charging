@@ -5,7 +5,7 @@ class config_default:
     def __init__(self, config_env_name):
         self.name = None
         self.controller_name = None
-        self.use_baseline = True
+        self.use_baseline = False
         self.record = False
         baseline_str = 'baseline' if self.use_baseline else 'no_baseline'
 
@@ -21,18 +21,18 @@ class config_default:
         self.plot_freq = 100000
 
         # model and training config
-        self.num_batches = 10  # number of batches trained on
+        self.num_batches = 30  # number of batches trained on
         self.batch_size = 4*24*10 # number of steps used to compute each policy update
         self.max_ep_len = -1  # maximum episode length
         self.max_ep_len_eval = -1  # maximum episode length
         self.eval_episodes = 10
         self.learning_rate = 5e-2
         self.gamma = 0.98  # the discount factor
-        self.normalize_advantage = True
+        self.normalize_advantage = False
 
         # parameters for the policy and baseline models
         self.n_layers = 1
-        self.layer_size = 64
+        self.layer_size = 32
         self.activation = tf.nn.relu
 
         # since we start new episodes for each batch
