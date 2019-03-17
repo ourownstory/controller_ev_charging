@@ -190,8 +190,6 @@ class Controller(ABC):
                 infos.append(info)
 
                 episode_reward = episode_reward + reward
-                if self.config.show_plots:
-                    utils.update_plot_data(plot_data, info)
                 t += 1
                 if (done or step == max_ep_len - 1):
                     # if self.config.gamma < 1:
