@@ -13,15 +13,15 @@ class config_default:
         self.output_path = "results/{}-{}/".format(config_env_name, baseline_str)
         self.model_output = self.output_path + "model.weights/"
         self.log_path = self.output_path + "log.txt"
-        self.plot_output = self.output_path + "scores.png"
+        self.plot_output = self.output_path
         self.record_path = self.output_path
         self.record_freq = 0
         self.summary_freq = 1
         self.show_plots = True
-        self.plot_freq = 10
+        self.plot_freq = 100
 
         # model and training config
-        self.num_batches = 50  # number of batches trained on
+        self.num_batches = 10  # number of batches trained on
         self.batch_size = 4*24*10 # number of steps used to compute each policy update
         self.max_ep_len = -1  # maximum episode length
         self.max_ep_len_eval = -1  # maximum episode length

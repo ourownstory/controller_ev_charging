@@ -3,11 +3,10 @@ import tensorflow as tf
 import numpy as np
 import gym
 import os
-import matplotlib
-import matplotlib.pyplot as plt
-plt.switch_backend("TkAgg")
-from policy_gradient.utils_pg import get_logger, Progbar
+from copy import deepcopy
 
+from policy_gradient.utils_pg import get_logger, Progbar
+import utils_controller as utils
 
 class Controller(ABC):
     """
@@ -148,17 +147,6 @@ class Controller(ABC):
             dtype=tf.float32,
         )
 
-    def update_plot_data(self, plot_data, info):
-        new_state, charge_rates = info['new_state'], info['charge_rates']
-        num_stations = len(new_state['stations'])
-        plot_data["times"].append(new_state['time'])
-        for stn in range(num_stations): plot_data['actions'][stn].append(charge_rates[stn])
-        for stn in range(num_stations): plot_data['per_chars'][stn].append(new_state['stations'][stn]['per_char'])
-        for stn in range(num_stations): plot_data['des_chars'][stn].append(
-            new_state['stations'][stn]['des_char'])
-        for stn in range(num_stations): plot_data['is_cars'][stn].append(
-            new_state['stations'][stn]['is_car'])
-
     def sample_path(self, env, max_ep_len, num_episodes=None):
         """
         Sample paths (trajectories) from the environment.
@@ -206,7 +194,7 @@ class Controller(ABC):
                 rewards.append(reward)
 
                 episode_reward = episode_reward + reward
-                self.update_plot_data(plot_data, info)
+                utils.update_plot_data(plot_data, info)
                 t += 1
                 if (done or step == max_ep_len - 1):
                     # if self.config.gamma < 1:
@@ -225,46 +213,16 @@ class Controller(ABC):
                 "action": np.array(actions)}
             paths.append(path)
             episode += 1
-            self.total_episode_counter += 1
-            if (self.total_episode_counter + 1) % self.config.plot_freq == 0:
+
+            if self.total_episode_counter % self.config.plot_freq == 0:
                 if self.config.show_plots:
-                    self.plot_episode(plot_data, self.total_episode_counter, env)
+                    utils.plot_episode(deepcopy(plot_data), self.total_episode_counter, env, self.config.plot_output)
+            self.total_episode_counter += 1
+
             if num_episodes and episode >= num_episodes:
                 break
         return paths, episode_rewards
 
-    def plot_episode(self, plot_data, eps_num, env):
-        f, axarr = plt.subplots(env.num_stations, sharex=True)
-        f.suptitle("Experiment {}, Episode #{}".format(self.config.controller_name, eps_num))
-        for stn in range(env.num_stations):
-            no_car_mask = np.array(plot_data['is_cars'][stn])
-            pow_violation_mask = np.array(np.sum(plot_data['actions'], axis=0) > env.transformer_capacity)
-            axarr[stn].plot(plot_data['times'], plot_data['actions'][stn], 'b-', label='Commanded Power [kW]')
-            axarr[stn].plot(np.array(plot_data['times'])[pow_violation_mask], np.array(plot_data['actions'][stn])[pow_violation_mask], 'r.', markersize=5,
-                     label='Transformer Capacity Violation')
-            axarr[stn].plot(np.array(plot_data['times'])[~no_car_mask], np.array(plot_data['per_chars'][stn])[~no_car_mask], 'kx', markersize=7,
-                     label='Car Not Present')
-
-            full_charge_mask = np.array(np.array(plot_data['per_chars'][stn]) > 0.99)
-            axarr2_stn = axarr[stn].twinx()
-            axarr2_stn.plot(plot_data['times'], np.array(plot_data['per_chars'][stn]) * np.array(plot_data['des_chars'][stn]), 'g-', label='Charge [kWh]', alpha=0.75)
-            axarr2_stn.plot(plot_data['times'], np.ones_like(plot_data['times']) * np.array(plot_data['des_chars'][stn]), 'g--', label="Full Charge [kWh]", alpha=0.5)
-            axarr2_stn.plot(np.array(plot_data['times'])[full_charge_mask],
-                            np.array(np.array(plot_data['per_chars'][stn]) * np.array(plot_data['des_chars'][stn]))[full_charge_mask], 'g.', markersize=5,
-                            label='Fully Charged')
-
-            axarr[stn].set(ylabel="Power [kW] for Station #{}".format(stn))
-            axarr[stn].set_ylim(env.min_power, env.max_power*1.1)
-
-
-            axarr2_stn.set(ylabel="Vehicle's charge [kWh]")
-            axarr2_stn.set_ylim(0, np.amax(plot_data['des_chars'])*1.1)
-
-            if stn == env.num_stations - 1:
-                axarr[stn].legend(loc='upper left')
-                axarr2_stn.legend(loc='upper right')
-        plt.show()
-        
     def record(self):
         """
         Recreate an env and record a video for one episode

@@ -58,7 +58,7 @@ def export_plot(ys, ylabel, title, filename):
     plt.xlabel("Training Episode")
     plt.ylabel(ylabel)
     plt.title(title)
-    plt.savefig(filename)
+    plt.savefig(filename + "scores.png")
     plt.close()
 
 
