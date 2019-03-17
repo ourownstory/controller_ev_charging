@@ -176,23 +176,18 @@ class Controller(ABC):
         while (num_episodes or t < self.config.batch_size):
             # print("episode", episode, "of", num_episodes, "t", t)
             state = env.reset()
-            states, actions, rewards = [], [], []
+            states, actions, rewards, infos = [], [], [], []
             episode_reward = 0
-            if self.config.show_plots:
-                plot_data = {"times": [], "actions": [[] for _ in range(env.num_stations)],
-                             "per_chars": [[] for _ in range(env.num_stations)],
-                             "des_chars": [[] for _ in range(env.num_stations)],
-                             "is_cars": [[] for _ in range(env.num_stations)]}
-
             for step in range(max_ep_len):
                 states.append(state)
-
+                
                 feed = {self.observation_placeholder: states[-1][None]}
                 action = self.sess.run(self.sampled_action, feed_dict=feed)[0]
-
                 state, reward, done, info = env.step(action)
+               
                 actions.append(action)
                 rewards.append(reward)
+                infos.append(info)
 
                 episode_reward = episode_reward + reward
                 if self.config.show_plots:
@@ -212,15 +207,11 @@ class Controller(ABC):
             path = {
                 "observation": np.array(states),
                 "reward": np.array(rewards),
-                "action": np.array(actions)}
+                "action": np.array(actions),
+                "infos": np.array(infos)}
             paths.append(path)
             episode += 1
-
-            if self.config.show_plots:
-                if self.total_episode_counter % self.config.plot_freq == 0:
-                    utils.plot_episode(deepcopy(plot_data), self.total_episode_counter, env, self.config.plot_output)
             self.total_episode_counter += 1
-
             if num_episodes and episode >= num_episodes:
                 break
         return paths, episode_rewards
@@ -230,7 +221,23 @@ class Controller(ABC):
         Recreate an env and record a video for one episode
         """
         # TODO: save plot
-        pass
+        new_env_config = self.env.config
+        new_env = gym.make(new_env_config.ENV_NAME)
+        new_env.build(new_env_config)
+
+        paths, total_rewards = self.sample_path(
+            new_env,
+            max_ep_len=self.config.max_ep_len,
+        )
+        infos = paths[0]['infos']
+        plot_data = {"times": [], "actions": [[] for _ in range(new_env.num_stations)],
+                     "per_chars": [[] for _ in range(new_env.num_stations)],
+                     "des_chars": [[] for _ in range(new_env.num_stations)],
+                     "is_cars": [[] for _ in range(new_env.num_stations)]}
+        for info in infos: 
+            utils.update_plot_data(plot_data, info)
+        utils.plot_episode(plot_data, self.total_episode_counter, new_env, self.config.plot_output)
+ 
         # env = gym.make(self.config.ENV_NAME)
         # env = gym.wrappers.Monitor(env, self.config.record_path, video_callable=lambda x: True, resume=True)
         # self.evaluate(env, 1)

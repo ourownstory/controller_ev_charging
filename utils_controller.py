@@ -44,10 +44,10 @@ def plot_episode(plot_data, eps_num, env, out_dir):
         if stn == env.num_stations - 1:
             ax_stn.legend(loc='upper left')
             axarr2_stn.legend(loc='upper right')
-    # plt.show()
     # self.config.plot_output
     filename = out_dir + "episode_{}".format(eps_num)
     plt.savefig(filename)
+    plt.show()
     plt.close()
 
 

@@ -6,7 +6,7 @@ class config_default:
         self.name = None
         self.controller_name = None
         self.use_baseline = True
-        self.record = False
+        self.record = True
         baseline_str = 'baseline' if self.use_baseline else 'no_baseline'
 
         # output config
@@ -17,7 +17,7 @@ class config_default:
         self.record_path = self.output_path
         self.record_freq = 0
         self.summary_freq = 1
-        self.show_plots = False
+        self.show_plots = True
         self.plot_freq = 100000
 
         # model and training config
