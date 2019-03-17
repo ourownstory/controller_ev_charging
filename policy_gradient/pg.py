@@ -287,7 +287,7 @@ class PG(Controller):
       )
       adv = adv - baseline
     if self.config.normalize_advantage:
-      adv = (adv - np.mean(adv)) / np.std(adv)
+      adv = (adv - np.mean(adv)) / (np.std(adv) + 1e-5)
     return adv
 
   def update_baseline(self, returns, observations):

@@ -178,10 +178,11 @@ class Controller(ABC):
             state = env.reset()
             states, actions, rewards = [], [], []
             episode_reward = 0
-            plot_data = {"times": [], "actions": [[] for _ in range(env.num_stations)],
-                         "per_chars": [[] for _ in range(env.num_stations)],
-                         "des_chars": [[] for _ in range(env.num_stations)],
-                         "is_cars": [[] for _ in range(env.num_stations)]}
+            if self.config.show_plots:
+                plot_data = {"times": [], "actions": [[] for _ in range(env.num_stations)],
+                             "per_chars": [[] for _ in range(env.num_stations)],
+                             "des_chars": [[] for _ in range(env.num_stations)],
+                             "is_cars": [[] for _ in range(env.num_stations)]}
 
             for step in range(max_ep_len):
                 states.append(state)
@@ -194,7 +195,8 @@ class Controller(ABC):
                 rewards.append(reward)
 
                 episode_reward = episode_reward + reward
-                utils.update_plot_data(plot_data, info)
+                if self.config.show_plots:
+                    utils.update_plot_data(plot_data, info)
                 t += 1
                 if (done or step == max_ep_len - 1):
                     # if self.config.gamma < 1:
@@ -214,8 +216,8 @@ class Controller(ABC):
             paths.append(path)
             episode += 1
 
-            if self.total_episode_counter % self.config.plot_freq == 0:
-                if self.config.show_plots:
+            if self.config.show_plots:
+                if self.total_episode_counter % self.config.plot_freq == 0:
                     utils.plot_episode(deepcopy(plot_data), self.total_episode_counter, env, self.config.plot_output)
             self.total_episode_counter += 1
 

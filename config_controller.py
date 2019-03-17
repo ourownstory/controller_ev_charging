@@ -5,7 +5,7 @@ class config_default:
     def __init__(self, config_env_name):
         self.name = None
         self.controller_name = None
-        self.use_baseline = False
+        self.use_baseline = True
         self.record = False
         baseline_str = 'baseline' if self.use_baseline else 'no_baseline'
 
@@ -17,8 +17,8 @@ class config_default:
         self.record_path = self.output_path
         self.record_freq = 0
         self.summary_freq = 1
-        self.show_plots = True
-        self.plot_freq = 100
+        self.show_plots = False
+        self.plot_freq = 100000
 
         # model and training config
         self.num_batches = 10  # number of batches trained on
