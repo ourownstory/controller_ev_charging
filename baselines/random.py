@@ -15,8 +15,8 @@ class Random(Controller):
 
     def train(self):
         # note: action is deterministic and not trained.
-        print("skipping training for purely random baseline")
-        pass
+        msg = "skipping training for purely random baseline"
+        self.logger.info(msg)
 
     def add_action_op(self):
         # note: action is deterministic and not trained.

@@ -311,20 +311,20 @@ class PG(Controller):
     """
     Performs training
 
-    You do not have to change or use anything here, but take a look
-    to see how all the code you've written fits together!
     """
     last_eval = 0
     last_record = 0
-    scores_eval = []
+    scores_eval = []  # list of scores computed at iteration time
 
     self.init_averages()
-    scores_eval = [] # list of scores computed at iteration time
 
     for t in range(self.config.num_batches):
 
       # collect a minibatch of samples
-      paths, total_rewards = self.sample_path(self.env)
+      paths, total_rewards = self.sample_path(
+        self.env,
+        max_ep_len=self.config.max_ep_len,
+        )
       scores_eval = scores_eval + total_rewards
       observations = np.concatenate([path["observation"] for path in paths])
       actions = np.concatenate([path["action"] for path in paths])
@@ -349,7 +349,7 @@ class PG(Controller):
       # compute reward statistics for this batch and log
       avg_reward = np.mean(total_rewards)
       sigma_reward = np.sqrt(np.var(total_rewards) / len(total_rewards))
-      msg = "Average reward: {:04.2f} +/- {:04.2f}".format(avg_reward, sigma_reward)
+      msg = "Average reward: {:9.1f} +/- {:.2f}".format(avg_reward, sigma_reward)
       self.logger.info(msg)
 
       if  self.config.record and (last_record > self.config.record_freq):

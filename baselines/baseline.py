@@ -15,8 +15,8 @@ class BaselineZero(Controller):
 
     def train(self):
         # note: action is deterministic and not trained.
-        print("skipping training for deterministic baseline 0")
-        pass
+        msg = "skipping training for deterministic baseline 0"
+        self.logger.info(msg)
 
     def add_action_op(self):
         assert self.discrete
@@ -37,8 +37,8 @@ class BaselineOne(Controller):
 
     def train(self):
         # note: action is deterministic and not trained.
-        print("skipping training for deterministic baseline 1")
-        pass
+        msg = "skipping training for deterministic baseline 1"
+        self.logger.info(msg)
 
     def add_action_op(self):
         assert self.discrete
