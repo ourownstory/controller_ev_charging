@@ -143,7 +143,7 @@ class Controller(ABC):
             dtype=tf.float32,
         )
 
-    def sample_path(self, env, num_episodes=None):
+    def sample_path(self, env, max_ep_len, num_episodes=None):
         """
         Sample paths (trajectories) from the environment.
 
@@ -170,43 +170,42 @@ class Controller(ABC):
         t = 0
 
         while (num_episodes or t < self.config.batch_size):
+            # print("episode", episode, "of", num_episodes, "t", t)
             state = env.reset()
             states, actions, rewards = [], [], []
             episode_reward = 0
 
-            for step in range(self.config.max_ep_len):
+            for step in range(max_ep_len):
                 states.append(state)
 
-                fetch_action = self.sampled_action
-                # # TODO decide whether to remove or not
-                # if self.mode == 'train':
-                #     fetch_action = self.sampled_action
-                # elif self.mode == 'eval':
-                #     fetch_action = self.determ_action
-
                 feed = {self.observation_placeholder: states[-1][None]}
-                action = self.sess.run(fetch_action, feed_dict=feed)[0]
+                action = self.sess.run(self.sampled_action, feed_dict=feed)[0]
 
                 state, reward, done, info = env.step(action)
                 actions.append(action)
                 rewards.append(reward)
+
                 episode_reward = episode_reward + reward
                 t += 1
-                if (done or step == self.config.max_ep_len - 1):
+                if (done or step == max_ep_len - 1):
+                    # if self.config.gamma < 1:
+                    #     episode_sum_scaling = (1.0 - (self.config.gamma ** max_ep_len)) / (1.0 - self.config.gamma)
+                    # else:
+                    #     episode_sum_scaling = max_ep_len
                     episode_rewards.append(episode_reward)
+                    # print("break 1 at step", step, "max_ep_len", max_ep_len, "t", t, "done", done)
                     break
                 if (not num_episodes) and t == self.config.batch_size:
+                    # print("break 2 at step, t", step, t)
                     break
             path = {
                 "observation": np.array(states),
                 "reward": np.array(rewards),
                 "action": np.array(actions)}
-            # print(path['action'])
             paths.append(path)
             episode += 1
             if num_episodes and episode >= num_episodes:
                 break
-
         return paths, episode_rewards
 
     def record(self):
@@ -241,16 +240,21 @@ class Controller(ABC):
         Not used right now, all evaluation statistics are computed during training
         episodes.
         """
-        # set env and controller to evaluation mode
-        # # TODO env.set_to_eval() -> then set num_episodes to 1 (one super long one)
+        self.logger.info("- Starting Evalutaion.")
         self.mode = 'eval'
         if env == None: env = self.env
-        env.evaluation_mode = True
         env.reset()
-        paths, rewards = self.sample_path(env, num_episodes)
+        env.evaluation_mode = True  # TODO: make this sample from test dataset, not train
+        paths, rewards = self.sample_path(
+            env,
+            max_ep_len=self.config.max_ep_len_eval,
+            num_episodes=num_episodes
+        )
+        # scale to be comparable to training rewards:
+        rewards = np.array(rewards) * self.config.max_ep_len / self.config.max_ep_len_eval
         avg_reward = np.mean(rewards)
         sigma_reward = np.sqrt(np.var(rewards) / len(rewards))
-        msg = "Evaluation reward: {:04.2f} +/- {:04.2f}".format(avg_reward, sigma_reward)
+        msg = "Evaluation reward: {:9.1f} +/- {:.2f}".format(avg_reward, sigma_reward)
         self.logger.info(msg)
         return avg_reward
 

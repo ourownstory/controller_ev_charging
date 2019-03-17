@@ -17,9 +17,13 @@ def run_experiment():
     env = gym.make(env_config.ENV_NAME)
     env.build(env_config)
 
+    # sync episode lengths
+    config.max_ep_len = env_config.EPS_LEN
+    config.max_ep_len_eval = env_config.EVAL_EPS_LEN
+
     model = getattr(controller, config.controller_name)(env, config)
     model.run_training()
-    model.run_evaluation(num_episodes=10)
+    model.run_evaluation(num_episodes=config.eval_episodes)
 
 
 if __name__ == '__main__':
