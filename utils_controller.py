@@ -61,3 +61,24 @@ def update_plot_data(plot_data, info):
         new_state['stations'][stn]['des_char'])
     for stn in range(num_stations): plot_data['is_cars'][stn].append(
         new_state['stations'][stn]['is_car'])
+
+def print_evaluation_statistics(rewards, infos, config, logger, env):
+    # scale to be comparable to training rewards:
+    rewards = np.array(rewards) * config.max_ep_len / config.max_ep_len_eval
+    avg_reward = np.mean(rewards)
+    sigma_reward = np.sqrt(np.var(rewards) / len(rewards))
+    msg = "Evaluation reward: {:9.1f} +/- {:.2f}".format(avg_reward, sigma_reward)
+    logger.info(msg)
+    #compute price per day and average percent best possible charge
+    best_possible_percents, prices = [], []
+    for info in infos:
+        best_possible_percents.extend(info['finished_cars_stats'])
+        prices.append(info['elec_cost'])
+    avg_percent, avg_price = np.mean(best_possible_percents), np.mean(prices)
+    sigma_percent = np.sqrt(np.var(best_possible_percents) / len(best_possible_percents))
+    avg_daily_price = avg_price*24/env.time_step
+    msg = "Avg best possible charge percentage:  {:9.1f} +/- {:.2f}".format(avg_percent, sigma_percent)
+    logger.info(msg)      
+    msg = "Avg daily price: {}".format(avg_daily_price)
+    logger.info(msg)
+    return avg_reward
