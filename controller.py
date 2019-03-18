@@ -285,3 +285,5 @@ class Controller(ABC):
 from policy_gradient.pg import PG
 from baselines.baseline import BaselineZero, BaselineOne
 from baselines.random import Random
+from deep_q.q_linear import LinearQN
+from deep_q.q_nature import NatureQN

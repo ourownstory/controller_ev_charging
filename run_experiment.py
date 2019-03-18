@@ -23,7 +23,11 @@ def run_experiment():
 
     model = getattr(controller, config.controller_name)(env, config)
     model.run_training()
-    model.run_evaluation(num_episodes=config.eval_episodes)
+
+    # eval
+    env_eval = gym.make(env_config.ENV_NAME)
+    env_eval.build(env_config)
+    model.run_evaluation(env_eval, num_episodes=config.eval_episodes)
 
 
 if __name__ == '__main__':
