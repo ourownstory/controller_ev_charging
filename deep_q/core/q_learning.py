@@ -7,6 +7,10 @@ from deep_q.utils.general import get_logger, Progbar, export_plot
 from deep_q.utils.replay_buffer import ReplayBuffer
 from deep_q.q_schedule import LinearExploration, LinearSchedule
 
+##TODO just have this here until we have an abstract controller
+import sys
+sys.path.append('../..')
+import utils_controller as utils
 
 class QN(object):
     """
@@ -372,22 +376,4 @@ class QN(object):
             # verbose=False,
         )
         rewards, infos = ret['rewards'], ret['infos']
-        # scale to be comparable to training rewards:
-        rewards = np.array(rewards) * self.config.max_ep_len / self.config.max_ep_len_eval
-        avg_reward = np.mean(rewards)
-        sigma_reward = np.sqrt(np.var(rewards) / len(rewards))
-        msg = "Evaluation reward: {:9.1f} +/- {:.2f}".format(avg_reward, sigma_reward)
-        self.logger.info(msg)
-        #compute price per day and average percent best possible charge
-        best_possible_percents, prices = [], []
-        for info in infos:
-            best_possible_percents.extend(info['finished_cars_stats'])
-            prices.append(info['elec_cost'])
-        avg_percent, avg_price = np.mean(best_possible_percents), np.mean(prices)
-        sigma_percent = np.sqrt(np.var(best_possible_percents) / len(best_possible_percents))
-        avg_daily_price = avg_price*24/env.time_step
-        msg = "Avg best possible charge percentage:  {:9.1f} +/- {:.2f}".format(avg_percent, sigma_percent)
-        self.logger.info(msg)      
-        msg = "Avg daily price: {}".format(avg_daily_price)
-        self.logger.info(msg)
-        return avg_reward
+        utils.print_evaluation_statistics(rewards, infos, self.config, self.logger, env)
