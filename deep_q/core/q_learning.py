@@ -155,7 +155,7 @@ class QN(object):
 
         t = last_eval = last_record = 0 # time control of nb of steps
         scores_eval = [] # list of scores computed at iteration time
-        scores_eval += [np.mean(self.evaluate())]
+        scores_eval += [np.mean(self.evaluate()['rewards'])]
         
         prog = Progbar(target=self.config.nsteps_train)
 
@@ -219,7 +219,7 @@ class QN(object):
                 # evaluate our policy
                 last_eval = 0
                 print("")
-                scores_eval += [np.mean(self.evaluate())]
+                scores_eval += [np.mean(self.evaluate()['rewards'])]
 
             if (t > self.config.learning_start) and self.config.record and (last_record > self.config.record_freq):
                 self.logger.info("Recording...")
@@ -229,7 +229,7 @@ class QN(object):
         # last words
         self.logger.info("- Training done.")
         self.save()
-        scores_eval += [np.mean(self.evaluate())]
+        scores_eval += [np.mean(self.evaluate()['rewards'])]
         export_plot(scores_eval, "Scores", self.config.plot_output)
 
     def train_step(self, t, replay_buffer, lr):
@@ -275,6 +275,7 @@ class QN(object):
         # replay memory to play
         replay_buffer = ReplayBuffer(self.config.buffer_size, self.config.state_history)
         rewards = []
+        infos = []
 
         for i in range(num_episodes):
             total_reward = 0
@@ -297,8 +298,9 @@ class QN(object):
                 replay_buffer.store_effect(idx, action, reward, done)
                 state = new_state
 
-                # count reward
+                # count reward and store info
                 total_reward += reward
+                infos.append(info)
                 if done:
                     break
 
@@ -312,7 +314,8 @@ class QN(object):
                 msg = "Average reward: {:04.2f} +/- {:04.2f}".format(avg_reward, sigma_reward)
                 self.logger.info(msg)
         # return avg_reward
-        return rewards
+        ret = {'rewards' : rewards, 'infos' : infos} 
+        return ret
 
     def record(self):
         """
@@ -362,16 +365,29 @@ class QN(object):
         if env == None: env = self.env
         env.reset()
         env.evaluation_mode = True  # TODO: make this sample from test dataset, not train
-        rewards = self.evaluate(
+        ret = self.evaluate(
             env=env,
             max_ep_len=self.config.max_ep_len_eval,
             num_episodes=num_episodes,
             # verbose=False,
         )
+        rewards, infos = ret['rewards'], ret['infos']
         # scale to be comparable to training rewards:
         rewards = np.array(rewards) * self.config.max_ep_len / self.config.max_ep_len_eval
         avg_reward = np.mean(rewards)
         sigma_reward = np.sqrt(np.var(rewards) / len(rewards))
         msg = "Evaluation reward: {:9.1f} +/- {:.2f}".format(avg_reward, sigma_reward)
+        self.logger.info(msg)
+        #compute price per day and average percent best possible charge
+        best_possible_percents, prices = [], []
+        for info in infos:
+            best_possible_percents.extend(info['finished_cars_stats'])
+            prices.append(info['elec_cost'])
+        avg_percent, avg_price = np.mean(best_possible_percents), np.mean(prices)
+        sigma_percent = np.sqrt(np.var(best_possible_percents) / len(best_possible_percents))
+        avg_daily_price = avg_price*24/env.time_step
+        msg = "Avg best possible charge percentage:  {:9.1f} +/- {:.2f}".format(avg_percent, sigma_percent)
+        self.logger.info(msg)      
+        msg = "Avg daily price: {}".format(avg_daily_price)
         self.logger.info(msg)
         return avg_reward

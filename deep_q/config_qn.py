@@ -1,7 +1,7 @@
 class config_qn():
     # for experiment, expected:
     controller_name = None
-    eval_episodes = 100
+    eval_episodes = 1
 
     # env config
     render_train     = False
