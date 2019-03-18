@@ -1,5 +1,5 @@
 import tensorflow as tf
-
+from deep_q.config_qn import config_linear_qn, config_nature_qn
 
 class config_default:
     def __init__(self, config_env_name):
@@ -17,18 +17,18 @@ class config_default:
         self.record_path = self.output_path
         self.record_freq = 0
         self.summary_freq = 1
-        self.show_plots = False
-        self.plot_freq = 100000
+        self.show_plots = True
+        self.plot_freq = 10
 
         # model and training config
-        self.num_batches = 30  # number of batches trained on
+        self.num_batches = 50  # number of batches trained on
         self.batch_size = 4*24*10 # number of steps used to compute each policy update
         self.max_ep_len = -1  # maximum episode length
         self.max_ep_len_eval = -1  # maximum episode length
         self.eval_episodes = 10
         self.learning_rate = 5e-2
-        self.gamma = 0.98  # the discount factor
-        self.normalize_advantage = False
+        self.gamma = 0.95  # the discount factor
+        self.normalize_advantage = True
 
         # parameters for the policy and baseline models
         self.n_layers = 1
@@ -69,12 +69,16 @@ class config_random(config_default):
         self.controller_name = "Random"
 
 
-def get_config(env_name, config_env_name):
-    if env_name == 'PG':
+def get_config(name, config_env_name):
+    if name == 'PG':
         return config_pg(config_env_name)
-    if env_name == 'BaselineZero':
+    if name == 'BaselineZero':
         return config_baseline0(config_env_name)
-    if env_name == 'BaselineOne':
+    if name == 'BaselineOne':
         return config_baseline1(config_env_name)
-    if env_name == 'Random':
+    if name == 'Random':
         return config_random(config_env_name)
+    if name == 'LinearQN':
+        return config_linear_qn()
+    if name == 'NatureQN':
+        return config_nature_qn()
