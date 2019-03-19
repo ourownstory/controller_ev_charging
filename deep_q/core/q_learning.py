@@ -6,82 +6,29 @@ from collections import deque
 from deep_q.utils.general import get_logger, Progbar, export_plot
 from deep_q.utils.replay_buffer import ReplayBuffer
 from deep_q.q_schedule import LinearExploration, LinearSchedule
+from meta_controller import MetaController
 
 ##TODO just have this here until we have an abstract controller
 import sys
 sys.path.append('../..')
 import utils_controller as utils
 
-class QN(object):
+
+class QN(MetaController):
     """
     Abstract Class for implementing a Q Network
     """
-    def __init__(self, env, config, logger=None):
-        """
-        Initialize Q Network and env
-
-        Args:
-            config: class with hyperparameters
-            logger: logger instance from logging module
-        """
-        # directory for training outputs
-        if not os.path.exists(config.output_path):
-            os.makedirs(config.output_path)
-            
-        # store hyper params
-        self.config = config
-        self.logger = logger
-        if logger is None:
-            self.logger = get_logger(config.log_path)
-        self.env = env
-
-        # build model
-        self.build()
-
-
-    def build(self):
-        """
-        Build modelg
-        """
-        pass
-
-
-    @property
-    def policy(self):
-        """
-        model.policy(state) = action
-        """
-        return lambda state: self.get_action(state)
-
-
-    def save(self):
-        """
-        Save model parameters
-
-        Args:
-            model_path: (string) directory
-        """
-        pass
-
-
-    def initialize(self):
-        """
-        Initialize variables if necessary
-        """
-        pass
-
 
     def get_best_action(self, state):
         """
         Returns best action according to the network
-    
+
         Args:
             state: observation from gym
         Returns:
             tuple: action, q values
         """
         raise NotImplementedError
-
 
     def get_action(self, state):
         """
@@ -95,30 +42,16 @@ class QN(object):
         else:
             return self.get_best_action(state)[0]
 
-
-    def update_target_params(self):
-        """
-        Update params of Q' with params of Q
-        """
-        pass
-
-
     def init_averages(self):
         """
         Defines extra attributes for tensorboard
         """
-        self.avg_reward = -21.
-        self.max_reward = -21.
-        self.std_reward = 0
-
+        super().init_averages()
         self.avg_q = 0
         self.max_q = 0
         self.std_q = 0
         
-        self.eval_reward = -21.
-
-
-    def update_averages(self, rewards, max_q_values, q_values, scores_eval):
+    def update_averages(self, rewards, scores_eval, max_q_values=None, q_values=None):
         """
         Update the averages
 
@@ -128,19 +61,16 @@ class QN(object):
             q_values: deque
             scores_eval: list
         """
-        self.avg_reward = np.mean(rewards)
-        self.max_reward = np.max(rewards)
-        self.std_reward = np.sqrt(np.var(rewards) / len(rewards))
+        if max_q_values is None or q_values is None:
+            raise NotImplementedError("Looking for baseclass function?")
+
+        super().update_averages(rewards, scores_eval)
 
         self.max_q      = np.mean(max_q_values)
         self.avg_q      = np.mean(q_values)
         self.std_q      = np.sqrt(np.var(q_values) / len(q_values))
 
-        if len(scores_eval) > 0:
-            self.eval_reward = scores_eval[-1]
-
-
-    def train(self, exp_schedule, lr_schedule):
+    def train(self):
         """
         Performs training of Q
 
@@ -149,6 +79,10 @@ class QN(object):
                 exp_schedule.get_action(best_action) returns an action
             lr_schedule: Schedule for learning rate
         """
+        # exploration strategy
+        exp_schedule = LinearExploration(self.env, self.config.eps_begin, self.config.eps_end, self.config.eps_nsteps)
+        # learning rate schedule
+        lr_schedule = LinearSchedule(self.config.lr_begin, self.config.lr_end, self.config.lr_nsteps)
 
         # initialize replay buffer and variables
         replay_buffer = ReplayBuffer(self.config.buffer_size, self.config.state_history)
@@ -157,10 +91,10 @@ class QN(object):
         q_values = deque(maxlen=1000)
         self.init_averages()
 
-        t = last_eval = last_record = 0 # time control of nb of steps
-        scores_eval = [] # list of scores computed at iteration time
-        scores_eval += [np.mean(self.evaluate()['rewards'])]
-        
+        t = last_eval = last_record = 0  # time control of nb of steps
+        scores_eval = []  # list of scores computed at iteration time
+        scores_eval += [np.mean(self.evaluate()[1])]
+
         prog = Progbar(target=self.config.nsteps_train)
 
         # interact with environment
@@ -173,12 +107,12 @@ class QN(object):
                 last_record += 1
                 if self.config.render_train: self.env.render()
                 # replay memory stuff
-                idx      = replay_buffer.store_frame(state)
+                idx = replay_buffer.store_frame(state)
                 q_input = replay_buffer.encode_recent_observation()
 
                 # chose action according to current Q and exploration
                 best_action, q_values = self.get_best_action(q_input)
-                action                = exp_schedule.get_action(best_action)
+                action = exp_schedule.get_action(best_action)
 
                 # store q values
                 max_q_values.append(max(q_values))
@@ -196,19 +130,19 @@ class QN(object):
 
                 # logging stuff
                 if ((t > self.config.learning_start) and (t % self.config.log_freq == 0) and
-                   (t % self.config.learning_freq == 0)):
+                        (t % self.config.learning_freq == 0)):
                     self.update_averages(rewards, max_q_values, q_values, scores_eval)
                     exp_schedule.update(t)
                     lr_schedule.update(t)
                     if len(rewards) > 0:
-                        prog.update(t + 1, exact=[("Loss", loss_eval), ("Avg_R", self.avg_reward), 
-                                        ("Max_R", np.max(rewards)), ("eps", exp_schedule.epsilon), 
-                                        ("Grads", grad_eval), ("Max_Q", self.max_q), 
-                                        ("lr", lr_schedule.epsilon)])
+                        prog.update(t + 1, exact=[("Loss", loss_eval), ("Avg_R", self.avg_reward),
+                                                  ("Max_R", np.max(rewards)), ("eps", exp_schedule.epsilon),
+                                                  ("Grads", grad_eval), ("Max_Q", self.max_q),
+                                                  ("lr", lr_schedule.epsilon)])
 
                 elif (t < self.config.learning_start) and (t % self.config.log_freq == 0):
-                    sys.stdout.write("\rPopulating the memory {}/{}...".format(t, 
-                                                        self.config.learning_start))
+                    sys.stdout.write("\rPopulating the memory {}/{}...".format(t,
+                                                                               self.config.learning_start))
                     sys.stdout.flush()
 
                 # count reward
@@ -217,23 +151,23 @@ class QN(object):
                     break
 
             # updates to perform at the end of an episode
-            rewards.append(total_reward)          
+            rewards.append(total_reward)
 
             if (t > self.config.learning_start) and (last_eval > self.config.eval_freq):
                 # evaluate our policy
                 last_eval = 0
                 print("")
-                scores_eval += [np.mean(self.evaluate()['rewards'])]
+                scores_eval += [np.mean(self.evaluate()[1])]
 
             if (t > self.config.learning_start) and self.config.record and (last_record > self.config.record_freq):
                 self.logger.info("Recording...")
-                last_record =0
+                last_record = 0
                 self.record()
 
         # last words
         self.logger.info("- Training done.")
         self.save()
-        scores_eval += [np.mean(self.evaluate()['rewards'])]
+        scores_eval += [np.mean(self.evaluate()[1])]
         export_plot(scores_eval, "Scores", self.config.plot_output)
 
     def train_step(self, t, replay_buffer, lr):
@@ -287,8 +221,6 @@ class QN(object):
             t = 0
             while max_ep_len is None or t < max_ep_len:
                 t += 1
-                if self.config.render_test: env.render()
-
                 # store last state in buffer
                 idx     = replay_buffer.store_frame(state)
                 q_input = replay_buffer.encode_recent_observation()
@@ -318,62 +250,13 @@ class QN(object):
                 msg = "Average reward: {:04.2f} +/- {:04.2f}".format(avg_reward, sigma_reward)
                 self.logger.info(msg)
         # return avg_reward
-        ret = {'rewards' : rewards, 'infos' : infos} 
-        return ret
+        paths = [{'rewards': rewards, 'infos': infos}]
+        return paths, rewards
 
-    def record(self):
+    def sample_gameplay(self, env=None, max_ep_len=None, num_episodes=None, verbose=True):
         """
-        Re create an env and record a video for one episode
+        Evaluation with same procedure as the training
+
+        Return: paths, episode_rewards
         """
-        # self.evaluate(env, 1)
-        pass
-
-    def run_training(self):
-        """
-        Apply procedures of training for a QN
-
-        Args:
-            exp_schedule: exploration strategy for epsilon
-            lr_schedule: schedule for learning rate
-        """
-
-        # wrapper for running training
-        config = self.config
-        # exploration strategy
-        exp_schedule = LinearExploration(self.env, config.eps_begin, config.eps_end, config.eps_nsteps)
-        # learning rate schedule
-        lr_schedule = LinearSchedule(config.lr_begin, config.lr_end, config.lr_nsteps)
-
-        # initialize
-        self.initialize()
-
-        # record one game at the beginning
-        if self.config.record:
-            self.record()
-
-        # model
-        self.train(exp_schedule, lr_schedule)
-
-        # record one game at the end
-        if self.config.record:
-            self.record()
-
-    def run_evaluation(self, env=None, num_episodes=1):
-        """
-        Evaluates the return for num_episodes episodes.
-        Not used right now, all evaluation statistics are computed during training
-        episodes.
-        """
-        self.logger.info("- Starting Evalutaion.")
-        self.mode = 'eval'
-        if env == None: env = self.env
-        env.reset()
-        env.evaluation_mode = True  # TODO: make this sample from test dataset, not train
-        ret = self.evaluate(
-            env=env,
-            max_ep_len=self.config.max_ep_len_eval,
-            num_episodes=num_episodes,
-            # verbose=False,
-        )
-        rewards, infos = ret['rewards'], ret['infos']
-        utils.print_evaluation_statistics(rewards, infos, self.config, self.logger, env)
+        return self.evaluate(env, max_ep_len, num_episodes, verbose)

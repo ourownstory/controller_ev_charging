@@ -4,7 +4,19 @@ import matplotlib.pyplot as plt
 plt.switch_backend("TkAgg")
 
 
-def plot_episode(plot_data, eps_num, env, out_dir):
+def plot_episode(path, eps_num, env, out_dir):
+    infos = path['infos']
+    plot_data = {"times": [], "actions": [[] for _ in range(env.num_stations)],
+                 "per_chars": [[] for _ in range(env.num_stations)],
+                 "des_chars": [[] for _ in range(env.num_stations)],
+                 "is_cars": [[] for _ in range(env.num_stations)]}
+    for info in infos:
+        update_plot_data(plot_data, info)
+    # actually plot
+    _plot_episode(plot_data, eps_num, env, out_dir)
+
+
+def _plot_episode(plot_data, eps_num, env, out_dir):
     f, axarr = plt.subplots(env.num_stations, sharex=True)
     f.suptitle("Episode #{}".format(eps_num))
     for stn in range(env.num_stations):
@@ -62,7 +74,9 @@ def update_plot_data(plot_data, info):
     for stn in range(num_stations): plot_data['is_cars'][stn].append(
         new_state['stations'][stn]['is_car'])
 
-def print_evaluation_statistics(rewards, infos, config, logger, env):
+
+def print_evaluation_statistics(rewards, paths, config, logger, env):
+    infos = [info for path in paths for info in path['infos']]
     # scale to be comparable to training rewards:
     rewards = np.array(rewards) * config.max_ep_len / config.max_ep_len_eval
     avg_reward = np.mean(rewards)
