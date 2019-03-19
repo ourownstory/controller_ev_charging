@@ -9,8 +9,14 @@ def get_config(name, config_env_name):
         return config_baseline0(name, config_env_name)
     if name == 'BaselineOne':
         return config_baseline1(name, config_env_name)
+    if name == 'BaselineFeasible':
+        return config_baselineF(name, config_env_name)
     if name == 'Random':
         return config_random(name, config_env_name)
+    if name == 'QLearningMLP':
+        return config_QLearningMLP(name, config_env_name)
+    if name == 'SarsaMLP':
+        return config_SarsaMLP(name, config_env_name)
     if name == 'LinearQN':
         return config_linear_qn(name, config_env_name)
     if name == 'NatureQN':
@@ -52,6 +58,10 @@ class config_baseline0(Config):
 class config_baseline1(Config):
     def build(self):
         self.controller_name = "BaselineOne"
+
+class config_baselineF(Config):
+    def build(self):
+        self.controller_name = "BaselineFeasible"
 
 
 class config_random(Config):
@@ -139,3 +149,24 @@ class config_nature_qn(config_qn):
         super().build()
         self.controller_name = "NatureQN"
 
+class config_QLearningMLP(Config):
+    def build(self):
+        self.controller_name = "QLearningMLP"
+        self.lr = 0.01
+        self.gamma = 0.9
+        self.epsilon = 1
+
+        self.num_batches = 1000  # number of batches trained on
+        self.batch_size = 4 * 24 * 6  # number of steps used to compute each policy update
+        self.record_freq = self.num_batches // 10
+
+class config_SarsaMLP(Config):
+    def build(self):
+        self.controller_name = "SarsaMLP"
+        self.lr = 0.01
+        self.gamma = 0.9
+        self.epsilon = 1
+
+        self.num_batches = 1000  # number of batches trained on
+        self.batch_size = 4 * 24 * 6  # number of steps used to compute each policy update
+        self.record_freq = self.num_batches // 10

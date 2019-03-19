@@ -152,7 +152,10 @@ class MetaController(ABC):
                 t += 1
                 states.append(state)
 
-                action = self.get_action(state=states[-1][None])
+                if not self.env.config.do_not_featurize:
+                    action = self.get_action(state=states[-1][None])
+                else:
+                    action = self.get_action(state=states[-1])
 
                 state, reward, done, info = env.step(action)
 
