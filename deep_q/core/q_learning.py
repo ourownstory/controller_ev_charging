@@ -93,19 +93,20 @@ class QN(MetaController):
 
         t = last_eval = last_record = 0  # time control of nb of steps
         scores_eval = []  # list of scores computed at iteration time
-        scores_eval += [np.mean(self.evaluate()[1])]
+        scores_eval += [self._evaluate()]
 
         prog = Progbar(target=self.config.nsteps_train)
 
         # interact with environment
         while t < self.config.nsteps_train:
+            self.total_train_steps += 1
             total_reward = 0
             state = self.env.reset()
             while True:
                 t += 1
                 last_eval += 1
                 last_record += 1
-                if self.config.render_train: self.env.render()
+                # if self.config.render_train: self.env.render()
                 # replay memory stuff
                 idx = replay_buffer.store_frame(state)
                 q_input = replay_buffer.encode_recent_observation()
@@ -131,7 +132,12 @@ class QN(MetaController):
                 # logging stuff
                 if ((t > self.config.learning_start) and (t % self.config.log_freq == 0) and
                         (t % self.config.learning_freq == 0)):
-                    self.update_averages(rewards, max_q_values, q_values, scores_eval)
+                    self.update_averages(
+                        rewards=rewards,
+                        max_q_values=max_q_values,
+                        q_values=q_values,
+                        scores_eval=scores_eval
+                    )
                     exp_schedule.update(t)
                     lr_schedule.update(t)
                     if len(rewards) > 0:
@@ -141,8 +147,8 @@ class QN(MetaController):
                                                   ("lr", lr_schedule.epsilon)])
 
                 elif (t < self.config.learning_start) and (t % self.config.log_freq == 0):
-                    sys.stdout.write("\rPopulating the memory {}/{}...".format(t,
-                                                                               self.config.learning_start))
+                    sys.stdout.write("\rPopulating the memory {}/{}...".format(
+                        t, self.config.learning_start))
                     sys.stdout.flush()
 
                 # count reward
@@ -157,17 +163,16 @@ class QN(MetaController):
                 # evaluate our policy
                 last_eval = 0
                 print("")
-                scores_eval += [np.mean(self.evaluate()[1])]
+                scores_eval += [self._evaluate()]
 
             if (t > self.config.learning_start) and self.config.record and (last_record > self.config.record_freq):
-                self.logger.info("Recording...")
                 last_record = 0
                 self.record()
 
         # last words
         self.logger.info("- Training done.")
         self.save()
-        scores_eval += [np.mean(self.evaluate()[1])]
+        scores_eval += [self._evaluate()]
         export_plot(scores_eval, "Scores", self.config.plot_output)
 
     def train_step(self, t, replay_buffer, lr):
@@ -195,7 +200,7 @@ class QN(MetaController):
 
         return loss_eval, grad_eval
 
-    def evaluate(self, env=None, max_ep_len=None, num_episodes=None, verbose=True):
+    def sample_gameplay(self, env=None, max_ep_len=None, num_episodes=None, verbose=True):
         """
         Evaluation with same procedure as the training
         """
@@ -212,15 +217,18 @@ class QN(MetaController):
 
         # replay memory to play
         replay_buffer = ReplayBuffer(self.config.buffer_size, self.config.state_history)
-        rewards = []
-        infos = []
+        episode_rewards = []
+        paths = []
+        # infos = []
 
         for i in range(num_episodes):
-            total_reward = 0
+            episode_reward = 0
             state = env.reset()
             t = 0
+            states, actions, rewards, infos = [], [], [], []
             while max_ep_len is None or t < max_ep_len:
                 t += 1
+                states.append(state)
                 # store last state in buffer
                 idx     = replay_buffer.store_frame(state)
                 q_input = replay_buffer.encode_recent_observation()
@@ -230,33 +238,42 @@ class QN(MetaController):
                 # perform action in env
                 new_state, reward, done, info = env.step(action)
 
+                actions.append(action)
+                rewards.append(reward)
+                infos.append(info)
+                # count reward and store info
+                episode_reward += reward
+
                 # store in replay memory
                 replay_buffer.store_effect(idx, action, reward, done)
                 state = new_state
 
-                # count reward and store info
-                total_reward += reward
-                infos.append(info)
                 if done:
                     break
+            path = {
+                "observation": np.array(states),
+                "reward": np.array(rewards),
+                "action": np.array(actions),
+                "infos": np.array(infos)}
+            paths.append(path)
 
             # updates to perform at the end of an episode
-            rewards.append(total_reward)
+            episode_rewards.append(episode_reward)
         if verbose:
-            avg_reward = np.mean(rewards)
-            sigma_reward = np.sqrt(np.var(rewards) / len(rewards))
-
+            avg_reward = np.mean(episode_rewards)
+            sigma_reward = np.sqrt(np.var(episode_rewards) / len(episode_rewards))
             if num_episodes > 1:
                 msg = "Average reward: {:04.2f} +/- {:04.2f}".format(avg_reward, sigma_reward)
                 self.logger.info(msg)
-        # return avg_reward
-        paths = [{'rewards': rewards, 'infos': infos}]
-        return paths, rewards
+        return paths, episode_rewards
 
-    def sample_gameplay(self, env=None, max_ep_len=None, num_episodes=None, verbose=True):
+    def _evaluate(self, env=None, max_ep_len=None, num_episodes=None, verbose=True):
         """
         Evaluation with same procedure as the training
 
-        Return: paths, episode_rewards
+        Return: average episode_rewards
         """
-        return self.evaluate(env, max_ep_len, num_episodes, verbose)
+        _, episode_rewards = self.sample_gameplay(
+            env, max_ep_len, num_episodes, verbose
+        )
+        return np.mean(episode_rewards)

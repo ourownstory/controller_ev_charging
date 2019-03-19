@@ -305,18 +305,19 @@ class PG(MetaController):
         """
         last_eval = 0
         last_record = 0
-        scores_eval = []  # list of scores computed at iteration time
+        scores = []  # list of scores computed at iteration time
 
         self.init_averages()
 
         for t in range(self.config.num_batches):
-
+            self.total_train_steps += 1
+            last_record += 1
             # collect a minibatch of samples
-            paths, total_rewards = self.sample_path(
+            paths, total_rewards = self.sample_gameplay(
                 self.env,
                 max_ep_len=self.config.max_ep_len,
             )
-            scores_eval = scores_eval + total_rewards
+            scores = scores + total_rewards
             observations = np.concatenate([path["observation"] for path in paths])
             actions = np.concatenate([path["action"] for path in paths])
             rewards = np.concatenate([path["reward"] for path in paths])
@@ -334,13 +335,14 @@ class PG(MetaController):
 
             # tf stuff
             if (t % self.config.summary_freq == 0):
-                self.update_averages(total_rewards, scores_eval)
+                self.update_averages(total_rewards, scores)
                 self.record_summary(t)
 
             # compute reward statistics for this batch and log
             avg_reward = np.mean(total_rewards)
             sigma_reward = np.sqrt(np.var(total_rewards) / len(total_rewards))
-            msg = "Average reward: {:9.1f} +/- {:.2f}".format(avg_reward, sigma_reward)
+            msg = "Step: {}/{} - avg reward: {:9.1f} +/- {:.2f}".format(
+                t, self.config.num_batches, avg_reward, sigma_reward)
             self.logger.info(msg)
 
             if self.config.record and (last_record > self.config.record_freq):
@@ -349,7 +351,7 @@ class PG(MetaController):
                 self.record()
 
         self.logger.info("- Training done.")
-        export_plot(scores_eval, "Score", self.config.name, self.config.plot_output)
+        export_plot(scores, "Score", self.config.name, self.config.plot_output)
 
     def get_action(self, state):
         """

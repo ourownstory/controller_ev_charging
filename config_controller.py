@@ -31,10 +31,9 @@ class Config(ABC):
         # general experiment settings
         self.record = True
         # self.record_path = self.output_path
-        self.record_freq = 0
+        # self.record_freq = None
         self.summary_freq = 1
         self.show_plots = True
-        self.plot_freq = 100
 
         # for evaluation
         self.eval_episodes = 10
@@ -72,10 +71,10 @@ class config_pg(Config):
         self.batch_size = 4 * 24 * 10  # number of steps used to compute each policy update
 
         self.learning_rate = 5e-2
-        self.gamma = 0.98  # the discount factor
+        self.gamma = 0.95  # the discount factor
 
         # parameters for the policy and baseline models
-        self.n_layers = 2
+        self.n_layers = 0
         self.layer_size = 128
         self.activation = tf.nn.relu
 
@@ -86,6 +85,9 @@ class config_pg(Config):
         # assert self.max_ep_len <= self.batch_size
         # if self.max_ep_len < 0:
         #     self.max_ep_len = self.batch_size
+
+        # overwrite from general config:
+        self.record_freq = 10
 
 
 class config_qn(Config):
@@ -110,16 +112,19 @@ class config_qn(Config):
         self.batch_size         = 64
         self.buffer_size        = 5000
         self.target_update_freq = 500
-        self.gamma              = 0.98
+        self.gamma              = 0.95
         self.learning_freq      = 1
         self.state_history      = 1
-        self.lr_begin           = 0.003
-        self.lr_end             = 0.0003
+        self.lr_begin           = 0.01
+        self.lr_end             = 0.001
         self.lr_nsteps          = self.nsteps_train/2
         self.eps_begin          = 1
         self.eps_end            = 0.1
         self.eps_nsteps         = self.nsteps_train/2
         self.learning_start     = 1000
+
+        # overwrite from general config:
+        self.record_freq = 5000
 
 
 class config_linear_qn(config_qn):

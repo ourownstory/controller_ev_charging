@@ -113,15 +113,15 @@ class MetaController(ABC):
         if len(scores_eval) > 0:
             self.eval_reward = scores_eval[-1]
 
-    def sample_gameplay(self, env=None, max_ep_len=None, num_episodes=None, verbose=True):
-        """
-        Evaluation with same procedure as the training
+    # def sample_gameplay(self, env=None, max_ep_len=None, num_episodes=None, verbose=True):
+    #     """
+    #     Evaluation with same procedure as the training
+    #
+    #     Return: paths, episode_rewards
+    #     """
+    #     return self.sample_path(env, max_ep_len, num_episodes)
 
-        Return: paths, episode_rewards
-        """
-        return self.sample_path(env, max_ep_len, num_episodes)
-
-    def sample_path(self, env, max_ep_len, num_episodes=None):
+    def sample_gameplay(self, env, max_ep_len, num_episodes=None):
         """
         Sample paths (trajectories) from the environment.
 
@@ -149,6 +149,7 @@ class MetaController(ABC):
             states, actions, rewards, infos = [], [], [], []
             episode_reward = 0
             for step in range(max_ep_len):
+                t += 1
                 states.append(state)
 
                 action = self.get_action(state=states[-1][None])
@@ -160,7 +161,6 @@ class MetaController(ABC):
                 infos.append(info)
 
                 episode_reward = episode_reward + reward
-                t += 1
                 if (done or step == max_ep_len - 1):
                     episode_rewards.append(episode_reward)
                     break
@@ -181,6 +181,7 @@ class MetaController(ABC):
         """
         Recreate an env and record a gameplay for one episode
         """
+        self.logger.info("Recording.")
         new_env_config = self.env.config
         new_env = gym.make(new_env_config.ENV_NAME)
         new_env.build(new_env_config)
@@ -191,11 +192,9 @@ class MetaController(ABC):
         paths, rewards = self.sample_gameplay(
             env=new_env,
             max_ep_len=self.config.max_ep_len,
-            num_episodes=1
+            num_episodes=3
         )
-        for path in paths:
-            # make plot
-            utils.plot_episode(path, self.total_train_steps, new_env, self.config.plot_output)
+        utils.plot_episodes(paths, self.total_train_steps, new_env, self.config.plot_output)
 
     def run_training(self):
         """
