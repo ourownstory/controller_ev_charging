@@ -152,7 +152,10 @@ class MetaController(ABC):
                 t += 1
                 states.append(state)
 
-                action = self.get_action(state=states[-1][None])
+                if not self.env.config.do_not_featurize:
+                    action = self.get_action(state=states[-1][None])
+                else:
+                    action = self.get_action(state=states[-1])
 
                 state, reward, done, info = env.step(action)
 
@@ -177,25 +180,25 @@ class MetaController(ABC):
                 break
         return paths, episode_rewards
 
-    def record(self):
+    def record(self, evaluation=False):
         """
         Recreate an env and record a gameplay for one episode
         """
         self.logger.info("Recording.")
         new_env_config = self.env.config
-        new_env = gym.make(new_env_config.ENV_NAME)
-        new_env.build(new_env_config)
-        new_env.reset()
-        new_env.evaluation_mode = True
+        env = gym.make(new_env_config.ENV_NAME)
+        env.build(new_env_config)
+        env.reset()
+        env.evaluation_mode = evaluation
 
         # play according to policy
         paths, rewards = self.sample_gameplay(
-            env=new_env,
+            env=env,
             max_ep_len=self.config.max_ep_len,
-            num_episodes=3
+            num_episodes=self.config.plots_per_record
         )
-        utils.plot_episodes(paths, self.total_train_steps, new_env, self.config.plot_output)
-        utils.print_evaluation_statistics(rewards, paths, self.config, self.logger, new_env)
+        utils.plot_episodes(paths, self.total_train_steps, env, self.config.plot_output, evaluation=evaluation)
+        utils.print_evaluation_statistics(rewards, paths, self.config, self.logger, env)
 
     def run_training(self):
         """
@@ -219,15 +222,30 @@ class MetaController(ABC):
         Not used right now, all evaluation statistics are computed during training
         episodes.
         """
-        self.logger.info("- Starting Evalutaion.")
+        self.logger.info("- Starting Evaluation.")
         self.mode = 'eval'
+
         if env is None:
-            env = self.env
-        env.reset()
-        env.evaluation_mode = True  # TODO: make this sample from test dataset, not train
+            new_env_config = self.env.config
+            env = gym.make(new_env_config.ENV_NAME)
+            env.build(new_env_config)
+        else:
+            # env = self.env
+            env.reset()
+        env.evaluation_mode = True
+        # sample
         paths, rewards = self.sample_gameplay(
             env=env,
             max_ep_len=self.config.max_ep_len_eval,
             num_episodes=num_episodes,
         )
+        # plot
+        utils.plot_episodes(
+            paths[:self.config.plots_per_record],
+            self.total_train_steps,
+            env,
+            self.config.plot_output,
+            evaluation=True
+        )
+        utils.price_energy_histogram(paths, self.config.plot_output)
         utils.print_evaluation_statistics(rewards, paths, self.config, self.logger, env)

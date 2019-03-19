@@ -1,8 +1,9 @@
 import numpy as np
 import matplotlib.pyplot as plt
-plt.switch_backend("TkAgg")
+# plt.switch_backend("TkAgg")
 from pandas.plotting import register_matplotlib_converters
 register_matplotlib_converters()
+import matplotlib.dates as mdates
 
 #allows for plotting from training or eval
 def _plot_with_infos(infos, title, env, out_dir):
@@ -16,17 +17,18 @@ def _plot_with_infos(infos, title, env, out_dir):
     # actually plot
     _plot_episode(plot_data, title, env, out_dir)
 
-def plot_episodes(paths, train_step, env, out_dir, num=None):
+def plot_episodes(paths, train_step, env, out_dir, num=None, evaluation=False):
     if num is None:
         num = len(paths)
     for e in range(num):
         path = paths[e]
         infos = path['infos']
-        title = "Step {}, Episode {}".format(train_step, e) 
+        mode = 'Eval' if evaluation else 'Train'
+        title = "{} Step {}, Episode {}".format(mode, train_step, e)
         _plot_with_infos(infos, title, env, out_dir)
 
 def _plot_episode(plot_data, title, env, out_dir):
-    f, axarr = plt.subplots(env.num_stations, sharex=True)
+    f, axarr = plt.subplots(env.num_stations, sharex=True, figsize=(14,7))
     f.suptitle(title)
     for stn in range(env.num_stations):
         if env.num_stations > 1:
@@ -59,13 +61,21 @@ def _plot_episode(plot_data, title, env, out_dir):
 
         ax_stn.set(ylabel="Power [kW] for Station #{}".format(stn))
         ax_stn.set_ylim(env.min_power, env.max_power * 1.1)
+        ax_stn.set(xlabel ="Time of Day")
 
         axarr2_stn.set(ylabel="Vehicle's charge [kWh]")
         axarr2_stn.set_ylim(0, np.amax(plot_data['des_chars']) * 1.1)
+        
+        hours = mdates.HourLocator(interval = 4)
+        h_fmt = mdates.DateFormatter('%H:%M')
+        ax_stn.xaxis.set_major_locator(hours)
+        ax_stn.xaxis.set_major_formatter(h_fmt)
 
+        
         if stn == env.num_stations - 1:
             ax_stn.legend(loc='upper left')
             axarr2_stn.legend(loc='upper right')
+    plt.gcf().autofmt_xdate()
     # self.config.plot_output
     filename = out_dir + title
     plt.savefig(filename)
@@ -85,10 +95,25 @@ def update_plot_data(plot_data, info):
         new_state['stations'][stn]['is_car'])
 
 
+def price_energy_histogram(paths, plot_dir, num_bins=10):
+    infos = [info for path in paths for info in path['infos']]
+    prices = [info['price'] for info in infos]
+    energies = [info['energy_delivered'] for info in infos]
+    plt.hist(prices, bins = num_bins, range=(0.0, 1.0), weights = energies, density = False)
+    plt.title('Energy Delivered vs Price (Density)')
+    plt.xlabel('Price')
+    plt.ylabel('Energy Delivered [kWh]')
+    title = "Energy_price_hist.png"
+    filename = plot_dir + title
+    plt.savefig(filename)
+    plt.show()
+
+
 def print_evaluation_statistics(rewards, paths, config, logger, env):
     infos = [info for path in paths for info in path['infos']]
+    # price_energy_histogram(infos, num_bins=20)
+    # _plot_with_infos(infos, 'Eval', env, config.plot_output)
     # scale to be comparable to training rewards:
-    _plot_with_infos(infos, 'Eval', env, config.plot_output)
     rewards = np.array(rewards) * config.max_ep_len / config.max_ep_len_eval
     avg_reward = np.mean(rewards)
     sigma_reward = np.sqrt(np.var(rewards) / len(rewards))

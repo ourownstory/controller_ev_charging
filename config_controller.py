@@ -9,8 +9,14 @@ def get_config(name, config_env_name):
         return config_baseline0(name, config_env_name)
     if name == 'BaselineOne':
         return config_baseline1(name, config_env_name)
+    if name == 'BaselineFeasible':
+        return config_baselineF(name, config_env_name)
     if name == 'Random':
         return config_random(name, config_env_name)
+    if name == 'QLearningMLP':
+        return config_QLearningMLP(name, config_env_name)
+    if name == 'SarsaMLP':
+        return config_SarsaMLP(name, config_env_name)
     if name == 'LinearQN':
         return config_linear_qn(name, config_env_name)
     if name == 'NatureQN':
@@ -36,8 +42,8 @@ class Config(ABC):
         self.show_plots = True
 
         # for evaluation
-        self.eval_episodes = 100
-        self.plot_episodes=5
+        self.eval_episodes = 10
+        self.plots_per_record = 5
 
         self.build()
 
@@ -54,6 +60,10 @@ class config_baseline1(Config):
     def build(self):
         self.controller_name = "BaselineOne"
 
+class config_baselineF(Config):
+    def build(self):
+        self.controller_name = "BaselineFeasible"
+
 
 class config_random(Config):
     def build(self):
@@ -69,7 +79,7 @@ class config_pg(Config):
 
         # model and training config
 
-        self.num_batches = 100  # number of batches trained on
+        self.num_batches = 5  # number of batches trained on
         self.batch_size = 4 * 24 * 70  # number of steps used to compute each policy update
 
         self.learning_rate = 5e-2
@@ -89,7 +99,8 @@ class config_pg(Config):
         #     self.max_ep_len = self.batch_size
 
         # overwrite from general config:
-        self.record_freq = self.num_batches // 5
+        self.record = False
+        self.record_freq = self.num_batches // 3
 
 
 class config_qn(Config):
@@ -126,7 +137,7 @@ class config_qn(Config):
         self.learning_start     = 1000
 
         # overwrite from general config:
-        self.record_freq = self.nsteps_train // 5
+        self.record_freq = self.nsteps_train // 3
 
 
 class config_linear_qn(config_qn):
@@ -140,3 +151,24 @@ class config_nature_qn(config_qn):
         super().build()
         self.controller_name = "NatureQN"
 
+class config_QLearningMLP(Config):
+    def build(self):
+        self.controller_name = "QLearningMLP"
+        self.lr = 0.01
+        self.gamma = 0.9
+        self.epsilon = 1
+
+        self.num_batches = 1000  # number of batches trained on
+        self.batch_size = 4 * 24 * 6  # number of steps used to compute each policy update
+        self.record_freq = self.num_batches // 10
+
+class config_SarsaMLP(Config):
+    def build(self):
+        self.controller_name = "SarsaMLP"
+        self.lr = 0.01
+        self.gamma = 0.9
+        self.epsilon = 1
+
+        self.num_batches = 1000  # number of batches trained on
+        self.batch_size = 4 * 24 * 6  # number of steps used to compute each policy update
+        self.record_freq = self.num_batches // 10
