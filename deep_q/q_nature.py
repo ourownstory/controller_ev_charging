@@ -60,8 +60,9 @@ class NatureQN(LinearQN):
         with tf.variable_scope(scope, reuse):
             # h = tf.layers.dense(inputs=tf.layers.flatten(state), units=128, activation=tf.nn.relu)
             h = tf.layers.dense(inputs=state, units=128, activation=tf.nn.relu)
-            h = tf.layers.dense(inputs=h, units=128, activation=tf.nn.relu)
-            # h = tf.layers.dense(inputs=h, units=128, activation=tf.nn.relu)
+            # h = tf.layers.dense(inputs=h, units=256, activation=tf.nn.relu)
+            h = tf.layers.dense(inputs=h, units=64, activation=tf.nn.relu)
+            h = tf.layers.dense(inputs=h, units=32, activation=tf.nn.relu)
             out = tf.layers.dense(inputs=h, units=num_actions)
 
         ##############################################################

@@ -9,8 +9,14 @@ def get_config(name, config_env_name):
         return config_baseline0(name, config_env_name)
     if name == 'BaselineOne':
         return config_baseline1(name, config_env_name)
+    if name == 'BaselineFeasible':
+        return config_baselineF(name, config_env_name)
     if name == 'Random':
         return config_random(name, config_env_name)
+    if name == 'QLearningMLP':
+        return config_QLearningMLP(name, config_env_name)
+    if name == 'SarsaMLP':
+        return config_SarsaMLP(name, config_env_name)
     if name == 'LinearQN':
         return config_linear_qn(name, config_env_name)
     if name == 'NatureQN':
@@ -53,6 +59,10 @@ class config_baseline1(Config):
     def build(self):
         self.controller_name = "BaselineOne"
 
+class config_baselineF(Config):
+    def build(self):
+        self.controller_name = "BaselineFeasible"
+
 
 class config_random(Config):
     def build(self):
@@ -67,14 +77,15 @@ class config_pg(Config):
         self.normalize_advantage = True
 
         # model and training config
-        self.num_batches = 5  # number of batches trained on
-        self.batch_size = 4 * 24 * 10  # number of steps used to compute each policy update
+
+        self.num_batches = 100  # number of batches trained on
+        self.batch_size = 4 * 24 * 70  # number of steps used to compute each policy update
 
         self.learning_rate = 5e-2
         self.gamma = 0.95  # the discount factor
 
         # parameters for the policy and baseline models
-        self.n_layers = 0
+        self.n_layers = 2
         self.layer_size = 128
         self.activation = tf.nn.relu
 
@@ -87,7 +98,7 @@ class config_pg(Config):
         #     self.max_ep_len = self.batch_size
 
         # overwrite from general config:
-        self.record_freq = 10
+        self.record_freq = self.num_batches // 10
 
 
 class config_qn(Config):
@@ -100,8 +111,8 @@ class config_qn(Config):
 
         # model and training config
         self.num_episodes_test = 50
-        self.grad_clip         = False
-        self.clip_val          = 1000
+        self.grad_clip         = True
+        self.clip_val          = 10
         self.saving_freq       = 5000
         self.log_freq          = 50
         self.eval_freq         = 5000
@@ -109,7 +120,7 @@ class config_qn(Config):
 
         # hyper params
         self.nsteps_train       = 20000
-        self.batch_size         = 64
+        self.batch_size         = 128
         self.buffer_size        = 5000
         self.target_update_freq = 500
         self.gamma              = 0.95
@@ -120,11 +131,11 @@ class config_qn(Config):
         self.lr_nsteps          = self.nsteps_train/2
         self.eps_begin          = 1
         self.eps_end            = 0.1
-        self.eps_nsteps         = self.nsteps_train/2
+        self.eps_nsteps         = self.nsteps_train/4
         self.learning_start     = 1000
 
         # overwrite from general config:
-        self.record_freq = 5000
+        self.record_freq = self.nsteps_train // 10
 
 
 class config_linear_qn(config_qn):
@@ -138,3 +149,24 @@ class config_nature_qn(config_qn):
         super().build()
         self.controller_name = "NatureQN"
 
+class config_QLearningMLP(Config):
+    def build(self):
+        self.controller_name = "QLearningMLP"
+        self.lr = 0.01
+        self.gamma = 0.9
+        self.epsilon = 1
+
+        self.num_batches = 1000  # number of batches trained on
+        self.batch_size = 4 * 24 * 6  # number of steps used to compute each policy update
+        self.record_freq = self.num_batches // 10
+
+class config_SarsaMLP(Config):
+    def build(self):
+        self.controller_name = "SarsaMLP"
+        self.lr = 0.01
+        self.gamma = 0.9
+        self.epsilon = 1
+
+        self.num_batches = 1000  # number of batches trained on
+        self.batch_size = 4 * 24 * 6  # number of steps used to compute each policy update
+        self.record_freq = self.num_batches // 10

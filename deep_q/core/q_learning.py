@@ -5,7 +5,7 @@ import sys
 from collections import deque
 
 from deep_q.utils.general import get_logger, Progbar, export_plot
-from deep_q.utils.replay_buffer import ReplayBuffer
+from deep_q.utils.replay_buffer import ReplayBufferSimple
 from deep_q.q_schedule import LinearExploration, LinearSchedule
 from meta_controller import MetaController
 
@@ -86,7 +86,7 @@ class QN(MetaController):
         lr_schedule = LinearSchedule(self.config.lr_begin, self.config.lr_end, self.config.lr_nsteps)
 
         # initialize replay buffer and variables
-        replay_buffer = ReplayBuffer(self.config.buffer_size, self.config.state_history)
+        replay_buffer = ReplayBufferSimple(self.config.buffer_size)
         rewards = deque(maxlen=self.config.num_episodes_test)
         max_q_values = deque(maxlen=1000)
         q_values = deque(maxlen=1000)
@@ -100,20 +100,19 @@ class QN(MetaController):
 
         # interact with environment
         while t < self.config.nsteps_train:
-            self.total_train_steps += 1
             total_reward = 0
             state = self.env.reset()
             while True:
+                self.total_train_steps += 1
                 t += 1
                 last_eval += 1
                 last_record += 1
                 # if self.config.render_train: self.env.render()
                 # replay memory stuff
                 idx = replay_buffer.store_frame(state)
-                q_input = replay_buffer.encode_recent_observation()
 
                 # chose action according to current Q and exploration
-                best_action, q_values = self.get_best_action(q_input)
+                best_action, q_values = self.get_best_action(state)
                 action = exp_schedule.get_action(best_action)
 
                 # store q values
@@ -152,6 +151,16 @@ class QN(MetaController):
                         t, self.config.learning_start))
                     sys.stdout.flush()
 
+                if (t > self.config.learning_start) and (last_eval >= self.config.eval_freq):
+                    # evaluate our policy
+                    last_eval = 0
+                    print("")
+                    scores_eval += [self._evaluate()]
+
+                if (t > self.config.learning_start) and self.config.record and (last_record >= self.config.record_freq):
+                    last_record = 0
+                    self.record()
+
                 # count reward
                 total_reward += reward
                 if done or t >= self.config.nsteps_train:
@@ -160,15 +169,6 @@ class QN(MetaController):
             # updates to perform at the end of an episode
             rewards.append(total_reward)
 
-            if (t > self.config.learning_start) and (last_eval > self.config.eval_freq):
-                # evaluate our policy
-                last_eval = 0
-                print("")
-                scores_eval += [self._evaluate()]
-
-            if (t > self.config.learning_start) and self.config.record and (last_record > self.config.record_freq):
-                last_record = 0
-                self.record()
 
         # last words
         self.logger.info("- Training done.")
@@ -217,7 +217,7 @@ class QN(MetaController):
             env = self.env
 
         # replay memory to play
-        replay_buffer = ReplayBuffer(self.config.buffer_size, self.config.state_history)
+        replay_buffer = ReplayBufferSimple(self.config.buffer_size)
         episode_rewards = []
         paths = []
         # infos = []
@@ -231,10 +231,9 @@ class QN(MetaController):
                 t += 1
                 states.append(state)
                 # store last state in buffer
-                idx     = replay_buffer.store_frame(state)
-                q_input = replay_buffer.encode_recent_observation()
+                idx = replay_buffer.store_frame(state)
 
-                action = self.get_action(q_input)
+                action = self.get_action(state)
 
                 # perform action in env
                 new_state, reward, done, info = env.step(action)

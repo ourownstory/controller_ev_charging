@@ -23,11 +23,11 @@ def plot_episodes(paths, train_step, env, out_dir, num=None):
     for e in range(num):
         path = paths[e]
         infos = path['infos']
-        title = "Step {}, Episode {}".format(train_step, e) 
+        title = "Step {}, Episode {}".format(train_step, e)
         _plot_with_infos(infos, title, env, out_dir)
 
 def _plot_episode(plot_data, title, env, out_dir):
-    f, axarr = plt.subplots(env.num_stations, sharex=True)
+    f, axarr = plt.subplots(env.num_stations, sharex=True, figsize=(14,7))
     f.suptitle(title)
     for stn in range(env.num_stations):
         if env.num_stations > 1:
