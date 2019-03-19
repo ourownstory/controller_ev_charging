@@ -13,13 +13,11 @@ class DQN(QN):
     def add_placeholders_op(self):
         raise NotImplementedError
 
-
     def get_q_values_op(self, scope, reuse=False):
         """
         set Q values, of shape = (batch_size, num_actions)
         """
         raise NotImplementedError
-
 
     def add_update_target_op(self, q_scope, target_q_scope):
         """
@@ -33,13 +31,11 @@ class DQN(QN):
         """
         raise NotImplementedError
 
-
     def add_loss_op(self, q, target_q):
         """
         Set (Q_target - Q)^2
         """
         raise NotImplementedError
-
 
     def add_optimizer_op(self, scope):
         """
@@ -47,24 +43,12 @@ class DQN(QN):
         """
         raise NotImplementedError
 
-
     def process_state(self, state):
         """
         Processing of state
-
-        State placeholders are tf.uint8 for fast transfer to GPU
-        Need to cast it to float32 for the rest of the tf graph.
-
-        Args:
-            state: node of tf graph of shape = (batch_size, height, width, nchannels)
-                    of type tf.uint8.
-                    if , values are between 0 and 255 -> 0 and 1
         """
-        state = tf.cast(state, tf.float32)
-        # state /= self.config.high
-
+        # state = tf.cast(state, tf.float32)
         return state
-
 
     def build(self):
         """
@@ -90,6 +74,8 @@ class DQN(QN):
         # add optmizer for the main networks
         self.add_optimizer_op("q")
 
+        # initialize
+        self.initialize()
 
     def initialize(self):
         """
@@ -112,7 +98,6 @@ class DQN(QN):
         # for saving networks weights
         self.saver = tf.train.Saver()
 
-       
     def add_summary(self):
         """
         Tensorboard stuff
@@ -145,10 +130,8 @@ class DQN(QN):
             
         # logging
         self.merged = tf.summary.merge_all()
-        self.file_writer = tf.summary.FileWriter(self.config.output_path, 
-                                                self.sess.graph)
-
-
+        self.file_writer = tf.summary.FileWriter(
+            self.config.output_path, self.sess.graph)
 
     def save(self):
         """
@@ -158,7 +141,6 @@ class DQN(QN):
             os.makedirs(self.config.model_output)
 
         self.saver.save(self.sess, self.config.model_output)
-
 
     def get_best_action(self, state):
         """
@@ -172,7 +154,6 @@ class DQN(QN):
         """
         action_values = self.sess.run(self.q, feed_dict={self.s: [state]})[0]
         return np.argmax(action_values), action_values
-
 
     def update_step(self, t, replay_buffer, lr):
         """
@@ -188,7 +169,6 @@ class DQN(QN):
 
         s_batch, a_batch, r_batch, sp_batch, done_mask_batch = replay_buffer.sample(
             self.config.batch_size)
-
 
         fd = {
             # inputs
@@ -208,15 +188,15 @@ class DQN(QN):
             self.eval_reward_placeholder: self.eval_reward, 
         }
 
-        loss_eval, grad_norm_eval, summary, _ = self.sess.run([self.loss, self.grad_norm, 
-                                                 self.merged, self.train_op], feed_dict=fd)
-
+        loss_eval, grad_norm_eval, summary, _ = self.sess.run(
+            [self.loss, self.grad_norm, self.merged, self.train_op],
+            feed_dict=fd
+        )
 
         # tensorboard stuff
         self.file_writer.add_summary(summary, t)
         
         return loss_eval, grad_norm_eval
-
 
     def update_target_params(self):
         """

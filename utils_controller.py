@@ -1,12 +1,29 @@
 import numpy as np
-
 import matplotlib.pyplot as plt
 plt.switch_backend("TkAgg")
+from pandas.plotting import register_matplotlib_converters
+register_matplotlib_converters()
 
 
-def plot_episode(plot_data, eps_num, env, out_dir):
+def plot_episodes(paths, train_step, env, out_dir, num=None):
+    if num is None:
+        num = len(paths)
+    for e in range(num):
+        path = paths[e]
+        infos = path['infos']
+        plot_data = {"times": [], "actions": [[] for _ in range(env.num_stations)],
+                     "per_chars": [[] for _ in range(env.num_stations)],
+                     "des_chars": [[] for _ in range(env.num_stations)],
+                     "is_cars": [[] for _ in range(env.num_stations)]}
+        for info in infos:
+            update_plot_data(plot_data, info)
+        # actually plot
+        _plot_episode(plot_data, train_step, env, out_dir, e)
+
+
+def _plot_episode(plot_data, train_step, env, out_dir, e):
     f, axarr = plt.subplots(env.num_stations, sharex=True)
-    f.suptitle("Episode #{}".format(eps_num))
+    f.suptitle("Step {}, Episode {}".format(train_step, e))
     for stn in range(env.num_stations):
         if env.num_stations > 1:
             ax_stn = axarr[stn]
@@ -45,7 +62,7 @@ def plot_episode(plot_data, eps_num, env, out_dir):
             ax_stn.legend(loc='upper left')
             axarr2_stn.legend(loc='upper right')
     # self.config.plot_output
-    filename = out_dir + "episode_{}".format(eps_num)
+    filename = out_dir + "step_{}_episode_{}".format(train_step, e)
     plt.savefig(filename)
     plt.show()
     plt.close()
@@ -61,16 +78,9 @@ def update_plot_data(plot_data, info):
     for stn in range(num_stations): plot_data['is_cars'][stn].append(
         new_state['stations'][stn]['is_car'])
 
-def make_plot(infos, eps_num, env, out_dir):
-    plot_data = {"times": [], "actions": [[] for _ in range(env.num_stations)],
-                 "per_chars": [[] for _ in range(env.num_stations)],
-                 "des_chars": [[] for _ in range(env.num_stations)],
-                 "is_cars": [[] for _ in range(env.num_stations)]}
-    for info in infos: 
-        update_plot_data(plot_data, info)
-    plot_episode(plot_data, eps_num, env, out_dir)
 
-def print_evaluation_statistics(rewards, infos, config, logger, env):
+def print_evaluation_statistics(rewards, paths, config, logger, env):
+    infos = [info for path in paths for info in path['infos']]
     # scale to be comparable to training rewards:
     make_plot(infos, 'eval', env, config.plot_output)
     rewards = np.array(rewards) * config.max_ep_len / config.max_ep_len_eval

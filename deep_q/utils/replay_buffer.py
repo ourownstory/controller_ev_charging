@@ -52,6 +52,7 @@ class ReplayBuffer(object):
         self.action   = None
         self.reward   = None
         self.done     = None
+        self.info     = None
 
     def can_sample(self, batch_size):
         """Returns true if `batch_size` different transitions can be sampled from the buffer."""
