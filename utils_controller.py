@@ -60,12 +60,12 @@ def _plot_episode(plot_data, title, env, out_dir):
 
         ax_stn.set(ylabel="Power [kW] for Station #{}".format(stn))
         ax_stn.set_ylim(env.min_power, env.max_power * 1.1)
-        #ax_stn.set(xlabel ="Date, Time of Day")
+        ax_stn.set(xlabel ="Time of Day")
 
         axarr2_stn.set(ylabel="Vehicle's charge [kWh]")
         axarr2_stn.set_ylim(0, np.amax(plot_data['des_chars']) * 1.1)
         
-        hours = mdates.HourLocator(interval = 1)
+        hours = mdates.HourLocator(interval = 4)
         h_fmt = mdates.DateFormatter('%H:%M')
         ax_stn.xaxis.set_major_locator(hours)
         ax_stn.xaxis.set_major_formatter(h_fmt)
