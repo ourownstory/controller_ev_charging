@@ -4,6 +4,16 @@ plt.switch_backend("TkAgg")
 from pandas.plotting import register_matplotlib_converters
 register_matplotlib_converters()
 
+#allows for plotting from training or eval
+def _plot_with_infos(infos, title, env, out_dir):
+    plot_data = {"times": [], "actions": [[] for _ in range(env.num_stations)],
+                 "per_chars": [[] for _ in range(env.num_stations)],
+                 "des_chars": [[] for _ in range(env.num_stations)],
+                 "is_cars": [[] for _ in range(env.num_stations)]}
+    for info in infos:
+        update_plot_data(plot_data, info)
+    # actually plot
+    _plot_episode(plot_data, title, env, out_dir)
 
 def plot_episodes(paths, train_step, env, out_dir, num=None):
     if num is None:
@@ -11,19 +21,12 @@ def plot_episodes(paths, train_step, env, out_dir, num=None):
     for e in range(num):
         path = paths[e]
         infos = path['infos']
-        plot_data = {"times": [], "actions": [[] for _ in range(env.num_stations)],
-                     "per_chars": [[] for _ in range(env.num_stations)],
-                     "des_chars": [[] for _ in range(env.num_stations)],
-                     "is_cars": [[] for _ in range(env.num_stations)]}
-        for info in infos:
-            update_plot_data(plot_data, info)
-        # actually plot
-        _plot_episode(plot_data, train_step, env, out_dir, e)
+        title = "Step {}, Episode {}".format(train_step, e) 
+    _plot_with_infos(infos, title, env, out_dir)
 
-
-def _plot_episode(plot_data, train_step, env, out_dir, e):
+def _plot_episode(plot_data, title, env, out_dir):
     f, axarr = plt.subplots(env.num_stations, sharex=True)
-    f.suptitle("Step {}, Episode {}".format(train_step, e))
+    f.suptitle(title)
     for stn in range(env.num_stations):
         if env.num_stations > 1:
             ax_stn = axarr[stn]
@@ -62,7 +65,7 @@ def _plot_episode(plot_data, train_step, env, out_dir, e):
             ax_stn.legend(loc='upper left')
             axarr2_stn.legend(loc='upper right')
     # self.config.plot_output
-    filename = out_dir + "step_{}_episode_{}".format(train_step, e)
+    filename = out_dir + title
     plt.savefig(filename)
     plt.show()
     plt.close()
@@ -82,7 +85,7 @@ def update_plot_data(plot_data, info):
 def print_evaluation_statistics(rewards, paths, config, logger, env):
     infos = [info for path in paths for info in path['infos']]
     # scale to be comparable to training rewards:
-    make_plot(infos, 'eval', env, config.plot_output)
+    _plot_with_infos(infos, 'Eval', env, config.plot_output)
     rewards = np.array(rewards) * config.max_ep_len / config.max_ep_len_eval
     avg_reward = np.mean(rewards)
     sigma_reward = np.sqrt(np.var(rewards) / len(rewards))

@@ -36,7 +36,7 @@ class Config(ABC):
         self.show_plots = True
 
         # for evaluation
-        self.eval_episodes = 10
+        self.eval_episodes = 1
 
         self.build()
 
@@ -67,7 +67,7 @@ class config_pg(Config):
         self.normalize_advantage = True
 
         # model and training config
-        self.num_batches = 100  # number of batches trained on
+        self.num_batches = 5  # number of batches trained on
         self.batch_size = 4 * 24 * 10  # number of steps used to compute each policy update
 
         self.learning_rate = 5e-2
