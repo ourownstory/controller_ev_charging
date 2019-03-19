@@ -195,6 +195,7 @@ class MetaController(ABC):
             num_episodes=3
         )
         utils.plot_episodes(paths, self.total_train_steps, new_env, self.config.plot_output)
+        utils.print_evaluation_statistics(rewards, paths, self.config, self.logger, new_env)
 
     def run_training(self):
         """
