@@ -9,7 +9,8 @@ def _plot_with_infos(infos, title, env, out_dir):
     plot_data = {"times": [], "actions": [[] for _ in range(env.num_stations)],
                  "per_chars": [[] for _ in range(env.num_stations)],
                  "des_chars": [[] for _ in range(env.num_stations)],
-                 "is_cars": [[] for _ in range(env.num_stations)]}
+                 "is_cars": [[] for _ in range(env.num_stations)],
+                 "price": []}
     for info in infos:
         update_plot_data(plot_data, info)
     # actually plot
@@ -42,6 +43,7 @@ def _plot_episode(plot_data, title, env, out_dir):
         ax_stn.plot(np.array(plot_data['times'])[~no_car_mask], np.array(plot_data['per_chars'][stn])[~no_car_mask],
                         'kx', markersize=7,
                         label='Car Not Present')
+        ax_stn.plot(plot_data['times'], plot_data['price'], 'r:', label = 'Normalized Price') 
 
         full_charge_mask = np.array(np.array(plot_data['per_chars'][stn]) > 0.99)
         axarr2_stn = ax_stn.twinx()
@@ -74,6 +76,7 @@ def update_plot_data(plot_data, info):
     new_state, charge_rates = info['new_state'], info['charge_rates']
     num_stations = len(new_state['stations'])
     plot_data["times"].append(new_state['time'])
+    plot_data["price"].append(info['price'])
     for stn in range(num_stations): plot_data['actions'][stn].append(charge_rates[stn])
     for stn in range(num_stations): plot_data['per_chars'][stn].append(new_state['stations'][stn]['per_char'])
     for stn in range(num_stations): plot_data['des_chars'][stn].append(
