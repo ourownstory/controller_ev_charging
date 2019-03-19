@@ -42,7 +42,8 @@ class Config(ABC):
         self.show_plots = True
 
         # for evaluation
-        self.eval_episodes = 1
+        self.eval_episodes = 10
+        self.plots_per_record = 5
 
         self.build()
 
@@ -99,7 +100,7 @@ class config_pg(Config):
 
         # overwrite from general config:
         self.record = False
-        self.record_freq = self.num_batches // 10
+        self.record_freq = self.num_batches // 3
 
 
 class config_qn(Config):
@@ -136,7 +137,7 @@ class config_qn(Config):
         self.learning_start     = 1000
 
         # overwrite from general config:
-        self.record_freq = self.nsteps_train // 10
+        self.record_freq = self.nsteps_train // 1
 
 
 class config_linear_qn(config_qn):

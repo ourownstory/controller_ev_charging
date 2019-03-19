@@ -180,7 +180,7 @@ class MetaController(ABC):
                 break
         return paths, episode_rewards
 
-    def record(self):
+    def record(self, evaluation=False):
         """
         Recreate an env and record a gameplay for one episode
         """
@@ -189,13 +189,13 @@ class MetaController(ABC):
         new_env = gym.make(new_env_config.ENV_NAME)
         new_env.build(new_env_config)
         new_env.reset()
-        new_env.evaluation_mode = True
+        new_env.evaluation_mode = evaluation
 
         # play according to policy
         paths, rewards = self.sample_gameplay(
             env=new_env,
             max_ep_len=self.config.max_ep_len,
-            num_episodes=3
+            num_episodes=self.config.plots_per_record
         )
         utils.plot_episodes(paths, self.total_train_steps, new_env, self.config.plot_output)
 
@@ -232,4 +232,12 @@ class MetaController(ABC):
             max_ep_len=self.config.max_ep_len_eval,
             num_episodes=num_episodes,
         )
+        utils.plot_episodes(
+            paths[:self.config.plots_per_record],
+            self.total_train_steps,
+            env,
+            self.config.plot_output,
+            evaluation=True
+        )
+        utils.price_energy_histogram(paths, self.config.plot_output)
         utils.print_evaluation_statistics(rewards, paths, self.config, self.logger, env)
