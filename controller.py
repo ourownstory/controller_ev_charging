@@ -228,13 +228,7 @@ class Controller(ABC):
             max_ep_len=self.config.max_ep_len,
         )
         infos = paths[0]['infos']
-        plot_data = {"times": [], "actions": [[] for _ in range(new_env.num_stations)],
-                     "per_chars": [[] for _ in range(new_env.num_stations)],
-                     "des_chars": [[] for _ in range(new_env.num_stations)],
-                     "is_cars": [[] for _ in range(new_env.num_stations)]}
-        for info in infos: 
-            utils.update_plot_data(plot_data, info)
-        utils.plot_episode(plot_data, self.total_episode_counter, new_env, self.config.plot_output)
+        utils.make_plot(infos, self.total_episode_counter, new_env, self.config.plot_output)
  
         # env = gym.make(self.config.ENV_NAME)
         # env = gym.wrappers.Monitor(env, self.config.record_path, video_callable=lambda x: True, resume=True)
@@ -270,7 +264,7 @@ class Controller(ABC):
         paths, rewards = self.sample_path(
             env,
             max_ep_len=self.config.max_ep_len_eval,
-            num_episodes=num_episodes
+            num_episodes=self.config.eval_episodes,
         )
         # scale to be comparable to training rewards:
         rewards = np.array(rewards) * self.config.max_ep_len / self.config.max_ep_len_eval

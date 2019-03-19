@@ -50,7 +50,6 @@ def plot_episode(plot_data, eps_num, env, out_dir):
     plt.show()
     plt.close()
 
-
 def update_plot_data(plot_data, info):
     new_state, charge_rates = info['new_state'], info['charge_rates']
     num_stations = len(new_state['stations'])
@@ -62,8 +61,18 @@ def update_plot_data(plot_data, info):
     for stn in range(num_stations): plot_data['is_cars'][stn].append(
         new_state['stations'][stn]['is_car'])
 
+def make_plot(infos, eps_num, env, out_dir):
+    plot_data = {"times": [], "actions": [[] for _ in range(env.num_stations)],
+                 "per_chars": [[] for _ in range(env.num_stations)],
+                 "des_chars": [[] for _ in range(env.num_stations)],
+                 "is_cars": [[] for _ in range(env.num_stations)]}
+    for info in infos: 
+        update_plot_data(plot_data, info)
+    plot_episode(plot_data, eps_num, env, out_dir)
+
 def print_evaluation_statistics(rewards, infos, config, logger, env):
     # scale to be comparable to training rewards:
+    make_plot(infos, 'eval', env, config.plot_output)
     rewards = np.array(rewards) * config.max_ep_len / config.max_ep_len_eval
     avg_reward = np.mean(rewards)
     sigma_reward = np.sqrt(np.var(rewards) / len(rewards))

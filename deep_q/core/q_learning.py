@@ -1,5 +1,6 @@
 import os
 import numpy as np
+import gym
 import sys
 from collections import deque
 
@@ -37,6 +38,9 @@ class QN(object):
 
         # build model
         self.build()
+        
+        #used for plotting frequency
+        self.total_episode_counter = 0
 
 
     def build(self):
@@ -310,6 +314,7 @@ class QN(object):
 
             # updates to perform at the end of an episode
             rewards.append(total_reward)
+            self.total_episode_counter += 1
         if verbose:
             avg_reward = np.mean(rewards)
             sigma_reward = np.sqrt(np.var(rewards) / len(rewards))
@@ -325,8 +330,18 @@ class QN(object):
         """
         Re create an env and record a video for one episode
         """
-        # self.evaluate(env, 1)
-        pass
+        new_env_config = self.env.config
+        new_env = gym.make(new_env_config.ENV_NAME)
+        new_env.build(new_env_config)
+
+        ret = self.evaluate(
+            env=new_env,
+            max_ep_len=self.config.max_ep_len_eval,
+            num_episodes=1,
+            # verbose=False,
+        )
+        rewards, infos = ret['rewards'], ret['infos']
+        utils.make_plot(infos, self.total_episode_counter, new_env, self.config.plot_output)
 
     def run_training(self):
         """

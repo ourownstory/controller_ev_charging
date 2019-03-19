@@ -44,7 +44,7 @@ class config_linear_qn(config_qn):
     output_path  = "results/q_linear/"
     model_output = output_path + "model.weights/"
     log_path     = output_path + "log.txt"
-    plot_output  = output_path + "scores.png"
+    plot_output  = output_path 
 
 
 class config_nature_qn(config_qn):
@@ -55,4 +55,4 @@ class config_nature_qn(config_qn):
     output_path  = "results/q_nature/"
     model_output = output_path + "model.weights/"
     log_path     = output_path + "log.txt"
-    plot_output  = output_path + "scores.png"
+    plot_output  = output_path

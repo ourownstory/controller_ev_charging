@@ -25,7 +25,7 @@ class config_default:
         self.batch_size = 4*24*10 # number of steps used to compute each policy update
         self.max_ep_len = -1  # maximum episode length
         self.max_ep_len_eval = -1  # maximum episode length
-        self.eval_episodes = 10
+        self.eval_episodes = 1
         self.learning_rate = 5e-2
         self.gamma = 0.95  # the discount factor
         self.normalize_advantage = True
