@@ -78,7 +78,7 @@ class config_pg(Config):
 
         # model and training config
 
-        self.num_batches = 100  # number of batches trained on
+        self.num_batches = 5  # number of batches trained on
         self.batch_size = 4 * 24 * 70  # number of steps used to compute each policy update
 
         self.learning_rate = 5e-2
@@ -98,6 +98,7 @@ class config_pg(Config):
         #     self.max_ep_len = self.batch_size
 
         # overwrite from general config:
+        self.record = False
         self.record_freq = self.num_batches // 10
 
 

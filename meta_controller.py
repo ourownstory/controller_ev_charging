@@ -221,7 +221,7 @@ class MetaController(ABC):
         Not used right now, all evaluation statistics are computed during training
         episodes.
         """
-        self.logger.info("- Starting Evalutaion.")
+        self.logger.info("- Starting Evaluation.")
         self.mode = 'eval'
         if env is None:
             env = self.env

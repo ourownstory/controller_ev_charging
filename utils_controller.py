@@ -93,10 +93,10 @@ def update_plot_data(plot_data, info):
     for stn in range(num_stations): plot_data['is_cars'][stn].append(
         new_state['stations'][stn]['is_car'])
 
-def price_energy_histogram(infos):
+def price_energy_histogram(infos, num_bins=20):
     prices = [info['price'] for info in infos]
     energies = [info['energy_delivered'] for info in infos]
-    plt.hist(prices, bins = 20, range=(0.0, 1.0), weights = energies, density = True)
+    plt.hist(prices, bins = num_bins, range=(0.0, 1.0), weights = energies, density = True)
     plt.title('Energy Delivered vs Price (Density)')
     plt.xlabel('Price')
     plt.ylabel('Normalized Energy Delivered [kW]')
@@ -104,7 +104,7 @@ def price_energy_histogram(infos):
 
 def print_evaluation_statistics(rewards, paths, config, logger, env):
     infos = [info for path in paths for info in path['infos']]
-    price_energy_histogram(infos)
+    price_energy_histogram(infos, num_bins=20)
     _plot_with_infos(infos, 'Eval', env, config.plot_output)
     # scale to be comparable to training rewards:
     rewards = np.array(rewards) * config.max_ep_len / config.max_ep_len_eval
