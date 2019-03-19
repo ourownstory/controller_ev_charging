@@ -345,7 +345,7 @@ class PG(MetaController):
                 t, self.config.num_batches, avg_reward, sigma_reward)
             self.logger.info(msg)
 
-            if self.config.record and (last_record > self.config.record_freq):
+            if self.config.record and (last_record >= self.config.record_freq):
                 self.logger.info("Recording...")
                 last_record = 0
                 self.record()
