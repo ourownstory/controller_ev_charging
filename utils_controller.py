@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 plt.switch_backend("TkAgg")
 from pandas.plotting import register_matplotlib_converters
 register_matplotlib_converters()
+import matplotlib.dates as mdates
 
 #allows for plotting from training or eval
 def _plot_with_infos(infos, title, env, out_dir):
@@ -59,13 +60,21 @@ def _plot_episode(plot_data, title, env, out_dir):
 
         ax_stn.set(ylabel="Power [kW] for Station #{}".format(stn))
         ax_stn.set_ylim(env.min_power, env.max_power * 1.1)
+        #ax_stn.set(xlabel ="Date, Time of Day")
 
         axarr2_stn.set(ylabel="Vehicle's charge [kWh]")
         axarr2_stn.set_ylim(0, np.amax(plot_data['des_chars']) * 1.1)
+        
+        hours = mdates.HourLocator(interval = 1)
+        h_fmt = mdates.DateFormatter('%H:%M')
+        ax_stn.xaxis.set_major_locator(hours)
+        ax_stn.xaxis.set_major_formatter(h_fmt)
 
+        
         if stn == env.num_stations - 1:
             ax_stn.legend(loc='upper left')
             axarr2_stn.legend(loc='upper right')
+    plt.gcf().autofmt_xdate()
     # self.config.plot_output
     filename = out_dir + title
     plt.savefig(filename)
