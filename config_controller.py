@@ -42,8 +42,9 @@ class Config(ABC):
         self.show_plots = True
 
         # for evaluation
-        self.eval_episodes = 100
-        self.plots_per_record = 5
+        self.eval_episodes = 100 # how many episodes to sample from eval set.
+        self.record_episodes = 100 # to compute stats when record is triggered
+        self.plots_per_record = 5 # how many plots to save per recording
 
         self.build()
 

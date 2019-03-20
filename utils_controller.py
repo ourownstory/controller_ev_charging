@@ -1,5 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import json
+import os
 # plt.switch_backend("TkAgg")
 from pandas.plotting import register_matplotlib_converters
 register_matplotlib_converters()
@@ -84,6 +86,7 @@ def _plot_episode(plot_data, title, env, out_dir):
     plt.show()
     plt.close()
 
+
 def update_plot_data(plot_data, info):
     new_state, charge_rates = info['new_state'], info['charge_rates']
     num_stations = len(new_state['stations'])
@@ -97,7 +100,7 @@ def update_plot_data(plot_data, info):
         new_state['stations'][stn]['is_car'])
 
 
-def price_energy_histogram(paths, plot_dir, contr_name, num_bins=10):
+def price_energy_histogram(paths, plot_dir, contr_name, mode, num_bins=10):
     infos = [info for path in paths for info in path['infos']]
     prices = [info['price'] for info in infos]
     energies = [info['energy_delivered'] for info in infos]
@@ -105,14 +108,17 @@ def price_energy_histogram(paths, plot_dir, contr_name, num_bins=10):
     plt.title('{} - Energy Delivered vs Price (Density)'.format(contr_name))
     plt.xlabel('Price')
     plt.ylabel('Energy Delivered [kWh]')
-    title = "Energy_price_hist.png"
+    title = "{}_energy_price_hist.png".format(mode)
     filename = plot_dir + title
     plt.savefig(filename)
     plt.show()
+    plt.close()
 
 
-def print_statistics(rewards, paths, config, logger, env):
+def compute_stats(rewards, paths, config, logger, env, save=False):
+    # compute and print
     msgs = []
+    stats = {}
     infos = [info for path in paths for info in path['infos']]
     # price_energy_histogram(infos, num_bins=20)
     # _plot_with_infos(infos, 'Eval', env, config.plot_output)
@@ -120,11 +126,12 @@ def print_statistics(rewards, paths, config, logger, env):
     rewards = np.array(rewards) * config.max_ep_len / config.max_ep_len_eval
     avg_reward = np.mean(rewards)
     sigma_reward = np.sqrt(np.var(rewards) / len(rewards))
-    msgs.append("Evaluation reward: {:9.1f} +/- {:.2f}".format(avg_reward, sigma_reward))
-
     mode = "Eval" if env.evaluation_mode else "Training"
     msg = "{} reward: {:9.1f} +/- {:.2f}".format(mode, avg_reward, sigma_reward)
-    logger.info(msg)
+    msgs.append(msg)
+    stats["reward_avg"] = avg_reward
+    stats["reward_sigma"] = sigma_reward
+
     #compute price per day and average percent best possible charge
     best_possible_energy, tot_energy_delivered, elec_costs = [], [], []
     for info in infos:
@@ -135,17 +142,31 @@ def print_statistics(rewards, paths, config, logger, env):
     avg_percent, avg_elec_cost_per_time_step = np.mean(best_possible_percents), np.mean(elec_costs)
     sigma_percent = np.sqrt(np.var(best_possible_percents) / len(best_possible_percents))
     msgs.append("Avg best possible charge completion (avg(energy_deliv/best_possible)) [1]:  {:9.1f} +/- {:.2f}".format(avg_percent, sigma_percent))
+    stats["charge_percent_avg"] = avg_percent
+    stats["charge_percent_sigma"] = sigma_percent
 
-    tot_charge_percent = np.sum(tot_energy_delivered) / np.sum(best_possible_energy)
-    msgs.append("Tot charge completion (sum(energy_deliv/best_possible)) [1]: {}".format(tot_charge_percent))
+    tot_energy_percent = np.sum(tot_energy_delivered) / np.sum(best_possible_energy)
+    msgs.append("Tot charge completion (sum(energy_deliv)/sum(best_possible)) [1]: {}".format(tot_energy_percent))
+    stats["tot_energy_percent"] = tot_energy_percent
 
     avg_elec_cost_per_day = avg_elec_cost_per_time_step * 24 / env.time_step
-    msgs.append("Avg elec cost per day [reward_elec/day]: {}".format(avg_elec_cost_per_day))
+    msgs.append("Avg elec cost per day [$/day]: {}".format(avg_elec_cost_per_day))
+    # stats["avg_elec_cost_per_day"] = avg_elec_cost_per_day
 
-    avg_elec_price_per_day = np.sum(elec_costs)/np.sum(tot_energy_delivered)
-    msgs.append("Avg elec price per day [reward_elec/kWh/day]: {}".format(avg_elec_price_per_day))
+    avg_elec_price = np.sum(elec_costs)/np.sum(tot_energy_delivered)
+    msgs.append("Avg elec price [$/kWh]: {}".format(avg_elec_price))
+    stats["avg_elec_price"] = avg_elec_price
 
     for msg in msgs:
         logger.info(msg)
-
+    # save
+    if save:
+        _save_statistics(stats, out_path=config.plot_output, evaluation=env.evaluation_mode)
     return avg_reward
+
+
+def _save_statistics(stats, out_path, evaluation):
+    name = "stats_{}.json".format("eval" if evaluation else "train")
+    outfile = os.path.join(out_path, name)
+    with open(outfile, 'w') as f_out:
+        json.dump(stats, f_out, sort_keys=True, indent=4, separators=(',', ': '))

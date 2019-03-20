@@ -165,31 +165,37 @@ class MetaController(ABC):
                 break
         return paths, episode_rewards
 
-    def record(self, evaluation=False):
+    def record(self):
         """
         Recreate an env and record a gameplay for one episode
         """
         self.logger.info("Recording.")
+        evaluating = self.mode == 'train'
+
         env = gym.make(self.env.config.ENV_NAME)
         env.build(self.env.config)
-        env.evaluation_mode = evaluation
+        env.evaluation_mode = evaluating
 
         # play according to policy
         paths, rewards = self.sample_gameplay(
             env=env,
-            max_ep_len=self.config.max_ep_len,
-            num_episodes=self.config.plots_per_record
+            max_ep_len=self.config.max_ep_len if evaluating else self.config.max_ep_len_eval,
+            num_episodes=self.config.eval_episodes if evaluating else self.config.record_episodes
         )
+
         # plot
         utils.plot_episodes(
-            paths=paths,
+            paths=paths[:self.config.plots_per_record],
             train_step=self.total_train_steps,
             env=env,
             contr_name=self.config.name,
             out_dir=self.config.plot_output,
             num=self.config.plots_per_record,
         )
-        utils.print_statistics(rewards, paths, self.config, self.logger, env)
+        # more plots
+        utils.price_energy_histogram(paths, self.config.plot_output, contr_name=self.config.name, mode=self.mode)
+        # stats
+        utils.compute_stats(rewards, paths, self.config, self.logger, env, save=True)
 
     def run_training(self):
         """
@@ -207,36 +213,10 @@ class MetaController(ABC):
         if self.config.record:
             self.record()
 
-    def run_evaluation(self, env=None, num_episodes=1):
+    def run_evaluation(self):
         """
         Evaluates the return for num_episodes episodes.
-        Not used right now, all evaluation statistics are computed during training
-        episodes.
         """
         self.logger.info("- Starting Evaluation.")
         self.mode = 'eval'
-
-        if env is None:
-            new_env_config = self.env.config
-            env = gym.make(new_env_config.ENV_NAME)
-            env.build(new_env_config)
-        else:
-            env.reset()
-        env.evaluation_mode = True
-        # sample
-        paths, rewards = self.sample_gameplay(
-            env=env,
-            max_ep_len=self.config.max_ep_len_eval,
-            num_episodes=num_episodes,
-        )
-        # plot
-        utils.plot_episodes(
-            paths=paths[:self.config.plots_per_record],
-            train_step=self.total_train_steps,
-            env=env,
-            contr_name=self.config.name,
-            out_dir=self.config.plot_output,
-            num=self.config.plots_per_record,
-        )
-        utils.price_energy_histogram(paths, self.config.plot_output, contr_name=self.config.name)
-        utils.print_statistics(rewards, paths, self.config, self.logger, env)
+        self.record()
