@@ -158,6 +158,7 @@ class config_nature_qn(config_qn):
 class config_QLearningMLP(Config):
     def build(self):
         self.controller_name = "QLearningMLP"
+        self.hidden_layer_sizes = (700, 500, 300)
         self.lr = 0.001
         self.gamma = 0.9
         self.epsilon = 1
@@ -169,6 +170,7 @@ class config_QLearningMLP(Config):
 class config_SarsaMLP(Config):
     def build(self):
         self.controller_name = "SarsaMLP"
+        self.hidden_layer_sizes = (700, 500, 300)
         self.lr = 0.001
         self.gamma = 0.9
         self.epsilon = 1
