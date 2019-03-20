@@ -1,6 +1,6 @@
 import tensorflow as tf
 from abc import ABC, abstractmethod
-
+import os, datetime
 
 def get_config(name, config_env_name):
     if name == 'PG':
@@ -30,6 +30,9 @@ class Config(ABC):
 
         # output config
         self.output_path = "results/{}-{}/".format(name, config_env_name)
+        self.output_path = self.output_path + datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S') + "/"
+        os.makedirs(self.output_path)
+
         self.model_output = self.output_path + "model.weights/"
         self.log_path = self.output_path + "log.txt"
         self.plot_output = self.output_path

@@ -170,7 +170,7 @@ class MetaController(ABC):
         Recreate an env and record a gameplay for one episode
         """
         self.logger.info("Recording.")
-        evaluating = self.mode == 'train'
+        evaluating = self.mode != 'train'
 
         env = gym.make(self.env.config.ENV_NAME)
         env.build(self.env.config)
