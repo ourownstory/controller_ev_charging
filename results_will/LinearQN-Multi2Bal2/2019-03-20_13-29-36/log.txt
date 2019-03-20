@@ -1,0 +1,136 @@
+2019-03-20 13:29:37,904:INFO: Recording.
+2019-03-20 13:29:37,904:INFO: Making new env: ev-charging-v0
+2019-03-20 13:29:52,002:INFO: Average reward: 24.16 +/- 1.02
+2019-03-20 13:29:57,399:INFO: 
+ - - - - - - - 
+For the past 100 paths:
+2019-03-20 13:29:57,399:INFO: Training reward:      24.2 +/- 1.02
+2019-03-20 13:29:57,399:INFO: Avg best possible charge completion (avg(energy_deliv/best_possible)) [1]:        0.7 +/- 0.01
+2019-03-20 13:29:57,399:INFO: Tot charge completion (sum(energy_deliv)/sum(best_possible)) [1]: 0.6603432432921853
+2019-03-20 13:29:57,399:INFO: Avg elec cost per day [$/day]: 19.14029227467091
+2019-03-20 13:29:57,399:INFO: Avg elec price [$/kWh]: 0.6297017953753342
+2019-03-20 13:29:57,399:INFO: 
+ - - - - - - - 
+
+2019-03-20 13:29:57,429:INFO: Evaluating...
+2019-03-20 13:30:04,485:INFO: Average reward: 25.86 +/- 1.48
+2019-03-20 13:30:30,744:INFO: Evaluating...
+2019-03-20 13:30:37,951:INFO: Average reward: 29.91 +/- 1.14
+2019-03-20 13:32:07,435:INFO: Recording.
+2019-03-20 13:32:07,435:INFO: Making new env: ev-charging-v0
+2019-03-20 13:32:21,443:INFO: Average reward: 7.85 +/- 0.43
+2019-03-20 13:32:26,762:INFO: 
+ - - - - - - - 
+For the past 100 paths:
+2019-03-20 13:32:26,762:INFO: Training reward:       7.9 +/- 0.43
+2019-03-20 13:32:26,762:INFO: Avg best possible charge completion (avg(energy_deliv/best_possible)) [1]:        0.2 +/- 0.01
+2019-03-20 13:32:26,762:INFO: Tot charge completion (sum(energy_deliv)/sum(best_possible)) [1]: 0.1904972485934496
+2019-03-20 13:32:26,762:INFO: Avg elec cost per day [$/day]: 3.8789199814115554
+2019-03-20 13:32:26,762:INFO: Avg elec price [$/kWh]: 0.4423624125499628
+2019-03-20 13:32:26,762:INFO: 
+ - - - - - - - 
+
+2019-03-20 13:32:26,798:INFO: Evaluating...
+2019-03-20 13:32:33,818:INFO: Average reward: 9.59 +/- 0.72
+2019-03-20 13:34:02,820:INFO: Evaluating...
+2019-03-20 13:34:09,835:INFO: Average reward: 15.75 +/- 1.07
+2019-03-20 13:35:38,577:INFO: Recording.
+2019-03-20 13:35:38,577:INFO: Making new env: ev-charging-v0
+2019-03-20 13:35:52,506:INFO: Average reward: 15.05 +/- 0.89
+2019-03-20 13:35:57,878:INFO: 
+ - - - - - - - 
+For the past 100 paths:
+2019-03-20 13:35:57,879:INFO: Training reward:      15.1 +/- 0.89
+2019-03-20 13:35:57,879:INFO: Avg best possible charge completion (avg(energy_deliv/best_possible)) [1]:        0.4 +/- 0.01
+2019-03-20 13:35:57,879:INFO: Tot charge completion (sum(energy_deliv)/sum(best_possible)) [1]: 0.340931241223963
+2019-03-20 13:35:57,879:INFO: Avg elec cost per day [$/day]: 5.967712319761508
+2019-03-20 13:35:57,879:INFO: Avg elec price [$/kWh]: 0.3802744829202364
+2019-03-20 13:35:57,879:INFO: 
+ - - - - - - - 
+
+2019-03-20 13:35:57,915:INFO: Evaluating...
+2019-03-20 13:36:04,876:INFO: Average reward: 15.16 +/- 1.07
+2019-03-20 13:37:33,649:INFO: Evaluating...
+2019-03-20 13:37:40,733:INFO: Average reward: 15.06 +/- 0.95
+2019-03-20 13:39:09,424:INFO: Recording.
+2019-03-20 13:39:09,424:INFO: Making new env: ev-charging-v0
+2019-03-20 13:39:23,304:INFO: Average reward: 16.62 +/- 0.88
+2019-03-20 13:39:28,671:INFO: 
+ - - - - - - - 
+For the past 100 paths:
+2019-03-20 13:39:28,671:INFO: Training reward:      16.6 +/- 0.88
+2019-03-20 13:39:28,671:INFO: Avg best possible charge completion (avg(energy_deliv/best_possible)) [1]:        0.4 +/- 0.01
+2019-03-20 13:39:28,671:INFO: Tot charge completion (sum(energy_deliv)/sum(best_possible)) [1]: 0.37324981200558455
+2019-03-20 13:39:28,671:INFO: Avg elec cost per day [$/day]: 6.014044244019114
+2019-03-20 13:39:28,671:INFO: Avg elec price [$/kWh]: 0.3500443932988541
+2019-03-20 13:39:28,671:INFO: 
+ - - - - - - - 
+
+2019-03-20 13:39:28,706:INFO: Evaluating...
+2019-03-20 13:39:35,491:INFO: Average reward: 16.89 +/- 1.17
+2019-03-20 13:41:04,297:INFO: Evaluating...
+2019-03-20 13:41:11,430:INFO: Average reward: 13.74 +/- 1.11
+2019-03-20 13:42:40,133:INFO: Recording.
+2019-03-20 13:42:40,133:INFO: Making new env: ev-charging-v0
+2019-03-20 13:42:54,052:INFO: Average reward: 9.91 +/- 0.56
+2019-03-20 13:42:59,361:INFO: 
+ - - - - - - - 
+For the past 100 paths:
+2019-03-20 13:42:59,362:INFO: Training reward:       9.9 +/- 0.56
+2019-03-20 13:42:59,362:INFO: Avg best possible charge completion (avg(energy_deliv/best_possible)) [1]:        0.3 +/- 0.01
+2019-03-20 13:42:59,362:INFO: Tot charge completion (sum(energy_deliv)/sum(best_possible)) [1]: 0.23401811771023975
+2019-03-20 13:42:59,362:INFO: Avg elec cost per day [$/day]: 4.7402590030210465
+2019-03-20 13:42:59,362:INFO: Avg elec price [$/kWh]: 0.4400567577765302
+2019-03-20 13:42:59,362:INFO: 
+ - - - - - - - 
+
+2019-03-20 13:42:59,397:INFO: Evaluating...
+2019-03-20 13:43:06,320:INFO: Average reward: 9.97 +/- 0.81
+2019-03-20 13:44:35,051:INFO: Evaluating...
+2019-03-20 13:44:41,929:INFO: Average reward: 17.08 +/- 1.44
+2019-03-20 13:46:10,669:INFO: Recording.
+2019-03-20 13:46:10,669:INFO: Making new env: ev-charging-v0
+2019-03-20 13:46:24,496:INFO: Average reward: 17.68 +/- 0.92
+2019-03-20 13:46:29,869:INFO: 
+ - - - - - - - 
+For the past 100 paths:
+2019-03-20 13:46:29,870:INFO: Training reward:      17.7 +/- 0.92
+2019-03-20 13:46:29,870:INFO: Avg best possible charge completion (avg(energy_deliv/best_possible)) [1]:        0.4 +/- 0.01
+2019-03-20 13:46:29,870:INFO: Tot charge completion (sum(energy_deliv)/sum(best_possible)) [1]: 0.4036695669167632
+2019-03-20 13:46:29,870:INFO: Avg elec cost per day [$/day]: 7.310219919415845
+2019-03-20 13:46:29,870:INFO: Avg elec price [$/kWh]: 0.3934237181228234
+2019-03-20 13:46:29,870:INFO: 
+ - - - - - - - 
+
+2019-03-20 13:46:29,903:INFO: - Training done.
+2019-03-20 13:46:29,928:INFO: Evaluating...
+2019-03-20 13:46:36,891:INFO: Average reward: 17.66 +/- 1.07
+2019-03-20 13:46:37,020:INFO: Recording.
+2019-03-20 13:46:37,020:INFO: Making new env: ev-charging-v0
+2019-03-20 13:46:50,772:INFO: Average reward: 17.88 +/- 0.91
+2019-03-20 13:46:56,122:INFO: 
+ - - - - - - - 
+For the past 100 paths:
+2019-03-20 13:46:56,123:INFO: Training reward:      17.9 +/- 0.91
+2019-03-20 13:46:56,123:INFO: Avg best possible charge completion (avg(energy_deliv/best_possible)) [1]:        0.4 +/- 0.01
+2019-03-20 13:46:56,123:INFO: Tot charge completion (sum(energy_deliv)/sum(best_possible)) [1]: 0.40699653211243175
+2019-03-20 13:46:56,123:INFO: Avg elec cost per day [$/day]: 7.2789079587772445
+2019-03-20 13:46:56,123:INFO: Avg elec price [$/kWh]: 0.3885363212026559
+2019-03-20 13:46:56,123:INFO: 
+ - - - - - - - 
+
+2019-03-20 13:46:56,154:INFO: - Starting Evaluation.
+2019-03-20 13:46:56,155:INFO: Recording.
+2019-03-20 13:46:56,155:INFO: Making new env: ev-charging-v0
+2019-03-20 13:49:13,313:INFO: Average reward: 19.84 +/- 0.30
+2019-03-20 13:49:19,525:INFO: 
+ - - - - - - - 
+For the past 1000 paths:
+2019-03-20 13:49:19,526:INFO: Eval reward:      19.8 +/- 0.30
+2019-03-20 13:49:19,526:INFO: Avg best possible charge completion (avg(energy_deliv/best_possible)) [1]:        0.5 +/- 0.00
+2019-03-20 13:49:19,526:INFO: Tot charge completion (sum(energy_deliv)/sum(best_possible)) [1]: 0.42432664142931187
+2019-03-20 13:49:19,526:INFO: Avg elec cost per day [$/day]: 7.941558696899582
+2019-03-20 13:49:19,526:INFO: Avg elec price [$/kWh]: 0.37743815414802717
+2019-03-20 13:49:19,526:INFO: 
+ - - - - - - - 
+

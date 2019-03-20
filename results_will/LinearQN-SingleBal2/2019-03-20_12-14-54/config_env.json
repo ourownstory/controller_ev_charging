@@ -1,0 +1,31 @@
+{
+    "ENV_NAME": "ev-charging-v0",
+    "EPS_LEN": 96,
+    "EVAL_EPS_LEN": 96,
+    "MAX_POWER": 6.6,
+    "MIN_POWER": 0.0,
+    "NUM_POWER_STEPS": 2,
+    "NUM_STATIONS": 1,
+    "RAND_SEED": 123456,
+    "REWARD_WEIGHTS": [
+        2,
+        1,
+        0
+    ],
+    "TIME_STEP": 0.25,
+    "TRANSFORMER_LIMIT": 1,
+    "alt_reward_func": false,
+    "charge_empty_factor": 0,
+    "continuous_actions": null,
+    "do_not_featurize": false,
+    "end_after_leave": true,
+    "eval_file": "eval_sessions_161718_95014_top10.csv",
+    "gamma": 0.95,
+    "obs_features": "combined",
+    "penalize_unecessary_actions": 0,
+    "reward_magnitude": 1.0,
+    "scale_actions_transformer": true,
+    "solar_behind_meter": 0,
+    "train_file": "train_sessions_161718_95014_top10.csv",
+    "use_delayed_charge_reward": "leave"
+}
