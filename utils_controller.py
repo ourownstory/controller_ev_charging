@@ -117,7 +117,7 @@ def price_energy_histogram(paths, plot_dir, contr_name, mode, num_bins=10):
 
 def compute_stats(rewards, paths, config, logger, env, save=False):
     # compute and print
-    msgs = []
+    msgs = ["\n - - - - - - - \nFor the past {} paths:".format(len(paths))]
     stats = {}
     infos = [info for path in paths for info in path['infos']]
     # price_energy_histogram(infos, num_bins=20)
@@ -127,8 +127,7 @@ def compute_stats(rewards, paths, config, logger, env, save=False):
     avg_reward = np.mean(rewards)
     sigma_reward = np.sqrt(np.var(rewards) / len(rewards))
     mode = "Eval" if env.evaluation_mode else "Training"
-    msg = "{} reward: {:9.1f} +/- {:.2f}".format(mode, avg_reward, sigma_reward)
-    msgs.append(msg)
+    msgs.append("{} reward: {:9.1f} +/- {:.2f}".format(mode, avg_reward, sigma_reward))
     stats["reward_avg"] = avg_reward
     stats["reward_sigma"] = sigma_reward
 
@@ -157,6 +156,7 @@ def compute_stats(rewards, paths, config, logger, env, save=False):
     msgs.append("Avg elec price [$/kWh]: {}".format(avg_elec_price))
     stats["avg_elec_price"] = avg_elec_price
 
+    msgs.append("\n - - - - - - - \n")
     for msg in msgs:
         logger.info(msg)
     # save
