@@ -17,14 +17,14 @@ def _plot_with_infos(infos, title, env, out_dir):
     # actually plot
     _plot_episode(plot_data, title, env, out_dir)
 
-def plot_episodes(paths, train_step, env, out_dir, num=None, evaluation=False):
+def plot_episodes(paths, train_step, env, contr_name, out_dir, num=None, evaluation=False):
     if num is None:
         num = len(paths)
     for e in range(num):
         path = paths[e]
         infos = path['infos']
         mode = 'Eval' if evaluation else 'Train'
-        title = "{} Step {}, Episode {}".format(mode, train_step, e)
+        title = "{} - {} Step {}, Episode {}".format(contr_name, mode, train_step, e)
         _plot_with_infos(infos, title, env, out_dir)
 
 def _plot_episode(plot_data, title, env, out_dir):
@@ -95,12 +95,12 @@ def update_plot_data(plot_data, info):
         new_state['stations'][stn]['is_car'])
 
 
-def price_energy_histogram(paths, plot_dir, num_bins=10):
+def price_energy_histogram(paths, plot_dir, contr_name, num_bins=10):
     infos = [info for path in paths for info in path['infos']]
     prices = [info['price'] for info in infos]
     energies = [info['energy_delivered'] for info in infos]
     plt.hist(prices, bins = num_bins, range=(0.0, 1.0), weights = energies, density = False)
-    plt.title('Energy Delivered vs Price (Density)')
+    plt.title('{} - Energy Delivered vs Price (Density)'.format(contr_name))
     plt.xlabel('Price')
     plt.ylabel('Energy Delivered [kWh]')
     title = "Energy_price_hist.png"
@@ -110,6 +110,7 @@ def price_energy_histogram(paths, plot_dir, num_bins=10):
 
 
 def print_evaluation_statistics(rewards, paths, config, logger, env):
+    msgs = []
     infos = [info for path in paths for info in path['infos']]
     # price_energy_histogram(infos, num_bins=20)
     # _plot_with_infos(infos, 'Eval', env, config.plot_output)
@@ -117,18 +118,28 @@ def print_evaluation_statistics(rewards, paths, config, logger, env):
     rewards = np.array(rewards) * config.max_ep_len / config.max_ep_len_eval
     avg_reward = np.mean(rewards)
     sigma_reward = np.sqrt(np.var(rewards) / len(rewards))
-    msg = "Evaluation reward: {:9.1f} +/- {:.2f}".format(avg_reward, sigma_reward)
-    logger.info(msg)
+    msgs.append("Evaluation reward: {:9.1f} +/- {:.2f}".format(avg_reward, sigma_reward))
+
     #compute price per day and average percent best possible charge
-    best_possible_percents, prices = [], []
+    best_possible_energy, tot_energy_delivered, elec_costs = [], [], []
     for info in infos:
-        best_possible_percents.extend(info['finished_cars_stats'])
-        prices.append(info['elec_cost'])
-    avg_percent, avg_price = np.mean(best_possible_percents), np.mean(prices)
+        tot_energy_delivered.extend(info['tot_energy_delivered'])
+        best_possible_energy.extend(info['best_possible_energy'])
+        elec_costs.append(info['elec_cost'])
+    best_possible_percents = np.divide(tot_energy_delivered, best_possible_energy)
+    avg_percent, avg_elec_cost_per_time_step = np.mean(best_possible_percents), np.mean(elec_costs)
     sigma_percent = np.sqrt(np.var(best_possible_percents) / len(best_possible_percents))
-    avg_daily_price = avg_price*24/env.time_step
-    msg = "Avg best possible charge percentage:  {:9.1f} +/- {:.2f}".format(avg_percent, sigma_percent)
-    logger.info(msg)      
-    msg = "Avg daily price: {}".format(avg_daily_price)
-    logger.info(msg)
+    msgs.append("Avg best possible charge completion (avg(energy_deliv/best_possible)) [1]:  {:9.1f} +/- {:.2f}".format(avg_percent, sigma_percent))
+
+    tot_charge_percent = np.sum(tot_energy_delivered) / np.sum(best_possible_energy)
+    msgs.append("Tot charge completion (sum(energy_deliv/best_possible)) [1]: {}".format(tot_charge_percent))
+
+    avg_elec_cost_per_day = avg_elec_cost_per_time_step * 24 / env.time_step
+    msgs.append("Avg elec cost per day [reward_elec/day]: {}".format(avg_elec_cost_per_day))
+
+    avg_elec_price_per_day = np.sum(elec_costs)/np.sum(tot_energy_delivered)
+    msgs.append("Avg elec price per day [reward_elec/kWh/day]: {}".format(avg_elec_price_per_day))
+
+    for msg in msgs:
+        logger.info(msg)
     return avg_reward

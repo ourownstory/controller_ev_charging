@@ -42,7 +42,7 @@ class Config(ABC):
         self.show_plots = True
 
         # for evaluation
-        self.eval_episodes = 10
+        self.eval_episodes = 100
         self.plots_per_record = 5
 
         self.build()
@@ -154,7 +154,7 @@ class config_nature_qn(config_qn):
 class config_QLearningMLP(Config):
     def build(self):
         self.controller_name = "QLearningMLP"
-        self.lr = 0.01
+        self.lr = 0.001
         self.gamma = 0.9
         self.epsilon = 1
 
@@ -165,7 +165,7 @@ class config_QLearningMLP(Config):
 class config_SarsaMLP(Config):
     def build(self):
         self.controller_name = "SarsaMLP"
-        self.lr = 0.01
+        self.lr = 0.001
         self.gamma = 0.9
         self.epsilon = 1
 

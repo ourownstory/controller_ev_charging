@@ -197,7 +197,7 @@ class MetaController(ABC):
             max_ep_len=self.config.max_ep_len,
             num_episodes=self.config.plots_per_record
         )
-        utils.plot_episodes(paths, self.total_train_steps, env, self.config.plot_output, evaluation=evaluation)
+        utils.plot_episodes(paths, self.total_train_steps, env, self.config.name, self.config.plot_output, evaluation=evaluation)
         utils.print_evaluation_statistics(rewards, paths, self.config, self.logger, env)
 
     def run_training(self):
@@ -241,11 +241,13 @@ class MetaController(ABC):
         )
         # plot
         utils.plot_episodes(
-            paths[:self.config.plots_per_record],
+            paths,
             self.total_train_steps,
             env,
+            self.config.name,
             self.config.plot_output,
-            evaluation=True
+            evaluation=True,
+            num=self.config.plots_per_record
         )
-        utils.price_energy_histogram(paths, self.config.plot_output)
+        utils.price_energy_histogram(paths, self.config.plot_output, contr_name=self.config.name)
         utils.print_evaluation_statistics(rewards, paths, self.config, self.logger, env)

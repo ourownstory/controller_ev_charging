@@ -5,7 +5,7 @@ from sklearn import neural_network
 
 class QLearningMLP(MetaController):
     def build(self):
-        self.model = neural_network.MLPRegressor(hidden_layer_sizes=(700, 700, 700, 700), warm_start=True)
+        self.model = neural_network.MLPRegressor(hidden_layer_sizes=(700, 500, 300), warm_start=True)
         self.model.fit(np.reshape(np.zeros(self.observation_dim), (1, -1)), np.reshape(np.zeros(self.action_dim), (1, -1)))
         self.lr = self.config.lr
         self.gamma = self.config.gamma
