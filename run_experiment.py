@@ -24,8 +24,8 @@ def get_configs():
     config.max_ep_len_eval = env_config.EVAL_EPS_LEN
     # save to JSON
     out_path = config.output_path
-    utils.save_object(config, out_path, name="config_env")
-    utils.save_object(env_config, out_path, name="config_controller")
+    utils.save_object(config, out_path, name="config_controller")
+    utils.save_object(env_config, out_path, name="config_env")
     return config, env_config
 
 

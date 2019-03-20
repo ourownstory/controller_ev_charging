@@ -9,24 +9,6 @@ def factory(classname):
 
 def get_config(name, config_env_name):
     return factory(name)(name, config_env_name)
-    # if name == 'PG':
-    #     return PG(name, config_env_name)
-    # if name == 'BaselineZero':
-    #     return config_baseline0(name, config_env_name)
-    # if name == 'BaselineOne':
-    #     return config_baseline1(name, config_env_name)
-    # if name == 'BaselineFeasible':
-    #     return config_baselineF(name, config_env_name)
-    # if name == 'Random':
-    #     return config_random(name, config_env_name)
-    # if name == 'QLearningMLP':
-    #     return config_QLearningMLP(name, config_env_name)
-    # if name == 'SarsaMLP':
-    #     return config_SarsaMLP(name, config_env_name)
-    # if name == 'LinearQN':
-    #     return config_linear_qn(name, config_env_name)
-    # if name == 'DeepQN':
-    #     return config_nature_qn(name, config_env_name)
 
 
 class Config(ABC):
@@ -51,7 +33,7 @@ class Config(ABC):
         self.show_plots = True
 
         # for evaluation
-        self.eval_episodes = 100  # how many episodes to sample from eval set.
+        self.eval_episodes = 1000  # how many episodes to sample from eval set.
         self.record_episodes = 100  # to compute stats when record is triggered
         self.plots_per_record = 5  # how many plots to save per recording
 
@@ -100,7 +82,7 @@ class PG(Config):
 
         # overwrite from general config:
         self.record = True
-        self.record_freq = self.num_batches // 5
+        self.record_freq = self.num_batches // 10
 
 
 class PG_small(PG):
