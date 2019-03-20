@@ -69,13 +69,6 @@ class MetaController(ABC):
         """
         pass
 
-    # @abstractmethod
-    # def initialize(self):
-    #     """
-    #     Initialize variables if necessary
-    #     """
-    #     raise NotImplementedError
-
     @abstractmethod
     def get_action(self, state):
         """
@@ -112,14 +105,6 @@ class MetaController(ABC):
 
         if len(scores_eval) > 0:
             self.eval_reward = scores_eval[-1]
-
-    # def sample_gameplay(self, env=None, max_ep_len=None, num_episodes=None, verbose=True):
-    #     """
-    #     Evaluation with same procedure as the training
-    #
-    #     Return: paths, episode_rewards
-    #     """
-    #     return self.sample_path(env, max_ep_len, num_episodes)
 
     def sample_gameplay(self, env, max_ep_len, num_episodes=None):
         """
@@ -185,10 +170,8 @@ class MetaController(ABC):
         Recreate an env and record a gameplay for one episode
         """
         self.logger.info("Recording.")
-        new_env_config = self.env.config
-        env = gym.make(new_env_config.ENV_NAME)
-        env.build(new_env_config)
-        env.reset()
+        env = gym.make(self.env.config.ENV_NAME)
+        env.build(self.env.config)
         env.evaluation_mode = evaluation
 
         # play according to policy
@@ -197,8 +180,16 @@ class MetaController(ABC):
             max_ep_len=self.config.max_ep_len,
             num_episodes=self.config.plots_per_record
         )
-        utils.plot_episodes(paths, self.total_train_steps, env, self.config.name, self.config.plot_output, evaluation=evaluation)
-        utils.print_evaluation_statistics(rewards, paths, self.config, self.logger, env)
+        # plot
+        utils.plot_episodes(
+            paths=paths,
+            train_step=self.total_train_steps,
+            env=env,
+            contr_name=self.config.name,
+            out_dir=self.config.plot_output,
+            num=self.config.plots_per_record,
+        )
+        utils.print_statistics(rewards, paths, self.config, self.logger, env)
 
     def run_training(self):
         """
@@ -230,7 +221,6 @@ class MetaController(ABC):
             env = gym.make(new_env_config.ENV_NAME)
             env.build(new_env_config)
         else:
-            # env = self.env
             env.reset()
         env.evaluation_mode = True
         # sample
@@ -241,13 +231,12 @@ class MetaController(ABC):
         )
         # plot
         utils.plot_episodes(
-            paths,
-            self.total_train_steps,
-            env,
-            self.config.name,
-            self.config.plot_output,
-            evaluation=True,
-            num=self.config.plots_per_record
+            paths=paths[:self.config.plots_per_record],
+            train_step=self.total_train_steps,
+            env=env,
+            contr_name=self.config.name,
+            out_dir=self.config.plot_output,
+            num=self.config.plots_per_record,
         )
         utils.price_energy_histogram(paths, self.config.plot_output, contr_name=self.config.name)
-        utils.print_evaluation_statistics(rewards, paths, self.config, self.logger, env)
+        utils.print_statistics(rewards, paths, self.config, self.logger, env)

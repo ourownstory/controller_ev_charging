@@ -17,15 +17,17 @@ def _plot_with_infos(infos, title, env, out_dir):
     # actually plot
     _plot_episode(plot_data, title, env, out_dir)
 
-def plot_episodes(paths, train_step, env, contr_name, out_dir, num=None, evaluation=False):
+
+def plot_episodes(paths, train_step, env, contr_name, out_dir, num=None):
     if num is None:
         num = len(paths)
     for e in range(num):
         path = paths[e]
         infos = path['infos']
-        mode = 'Eval' if evaluation else 'Train'
+        mode = 'Eval' if env.evaluation_mode else 'Train'
         title = "{} - {} Step {}, Episode {}".format(contr_name, mode, train_step, e)
         _plot_with_infos(infos, title, env, out_dir)
+
 
 def _plot_episode(plot_data, title, env, out_dir):
     f, axarr = plt.subplots(env.num_stations, sharex=True, figsize=(14,7))
@@ -109,7 +111,7 @@ def price_energy_histogram(paths, plot_dir, contr_name, num_bins=10):
     plt.show()
 
 
-def print_evaluation_statistics(rewards, paths, config, logger, env):
+def print_statistics(rewards, paths, config, logger, env):
     msgs = []
     infos = [info for path in paths for info in path['infos']]
     # price_energy_histogram(infos, num_bins=20)
@@ -120,6 +122,9 @@ def print_evaluation_statistics(rewards, paths, config, logger, env):
     sigma_reward = np.sqrt(np.var(rewards) / len(rewards))
     msgs.append("Evaluation reward: {:9.1f} +/- {:.2f}".format(avg_reward, sigma_reward))
 
+    mode = "Eval" if env.evaluation_mode else "Training"
+    msg = "{} reward: {:9.1f} +/- {:.2f}".format(mode, avg_reward, sigma_reward)
+    logger.info(msg)
     #compute price per day and average percent best possible charge
     best_possible_energy, tot_energy_delivered, elec_costs = [], [], []
     for info in infos:
@@ -142,4 +147,5 @@ def print_evaluation_statistics(rewards, paths, config, logger, env):
 
     for msg in msgs:
         logger.info(msg)
+
     return avg_reward
