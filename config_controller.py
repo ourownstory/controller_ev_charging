@@ -1,26 +1,32 @@
-import tensorflow as tf
 from abc import ABC, abstractmethod
 import os, datetime
 
+
+def factory(classname):
+    cls = globals()[classname]
+    return cls
+
+
 def get_config(name, config_env_name):
-    if name == 'PG':
-        return config_pg(name, config_env_name)
-    if name == 'BaselineZero':
-        return config_baseline0(name, config_env_name)
-    if name == 'BaselineOne':
-        return config_baseline1(name, config_env_name)
-    if name == 'BaselineFeasible':
-        return config_baselineF(name, config_env_name)
-    if name == 'Random':
-        return config_random(name, config_env_name)
-    if name == 'QLearningMLP':
-        return config_QLearningMLP(name, config_env_name)
-    if name == 'SarsaMLP':
-        return config_SarsaMLP(name, config_env_name)
-    if name == 'LinearQN':
-        return config_linear_qn(name, config_env_name)
-    if name == 'NatureQN':
-        return config_nature_qn(name, config_env_name)
+    return factory(name)(name, config_env_name)
+    # if name == 'PG':
+    #     return PG(name, config_env_name)
+    # if name == 'BaselineZero':
+    #     return config_baseline0(name, config_env_name)
+    # if name == 'BaselineOne':
+    #     return config_baseline1(name, config_env_name)
+    # if name == 'BaselineFeasible':
+    #     return config_baselineF(name, config_env_name)
+    # if name == 'Random':
+    #     return config_random(name, config_env_name)
+    # if name == 'QLearningMLP':
+    #     return config_QLearningMLP(name, config_env_name)
+    # if name == 'SarsaMLP':
+    #     return config_SarsaMLP(name, config_env_name)
+    # if name == 'LinearQN':
+    #     return config_linear_qn(name, config_env_name)
+    # if name == 'DeepQN':
+    #     return config_nature_qn(name, config_env_name)
 
 
 class Config(ABC):
@@ -45,9 +51,9 @@ class Config(ABC):
         self.show_plots = True
 
         # for evaluation
-        self.eval_episodes = 100 # how many episodes to sample from eval set.
-        self.record_episodes = 100 # to compute stats when record is triggered
-        self.plots_per_record = 5 # how many plots to save per recording
+        self.eval_episodes = 100  # how many episodes to sample from eval set.
+        self.record_episodes = 100  # to compute stats when record is triggered
+        self.plots_per_record = 5  # how many plots to save per recording
 
         self.build()
 
@@ -55,26 +61,27 @@ class Config(ABC):
     def build(self):
         raise NotImplementedError
 
-class config_baseline0(Config):
+class BaselineZero(Config):
     def build(self):
         self.controller_name = "BaselineZero"
 
 
-class config_baseline1(Config):
+class BaselineOne(Config):
     def build(self):
         self.controller_name = "BaselineOne"
 
-class config_baselineF(Config):
+
+class BaselineFeasible(Config):
     def build(self):
         self.controller_name = "BaselineFeasible"
 
 
-class config_random(Config):
+class Random(Config):
     def build(self):
         self.controller_name = "Random"
 
 
-class config_pg(Config):
+class PG(Config):
     def build(self):
         self.controller_name = "PG"
 
@@ -82,83 +89,104 @@ class config_pg(Config):
         self.normalize_advantage = True
 
         # model and training config
+        self.num_batches = 100  # number of batches trained on
+        self.batch_size = 4 * 24 * 100  # number of steps used to compute each policy update
 
-        self.num_batches = 5  # number of batches trained on
-        self.batch_size = 4 * 24 * 70  # number of steps used to compute each policy update
-
-        self.learning_rate = 5e-2
-        self.gamma = 0.95  # the discount factor
+        self.learning_rate = 0.03
+        self.gamma = 0.9  # the discount factor
 
         # parameters for the policy and baseline models
-        self.n_layers = 2
-        self.layer_size = 128
-        self.activation = tf.nn.relu
-
-        ## These are copied from the env_variables
-        # self.max_ep_len = -1  # maximum episode length
-        # self.max_ep_len_eval = -1  # maximum episode length
-        ## since we start new episodes for each batch
-        # assert self.max_ep_len <= self.batch_size
-        # if self.max_ep_len < 0:
-        #     self.max_ep_len = self.batch_size
+        self.layer_sizes = (512, 512, 256)
 
         # overwrite from general config:
-        self.record = False
-        self.record_freq = self.num_batches // 3
+        self.record = True
+        self.record_freq = self.num_batches // 5
 
 
-class config_qn(Config):
+class PG_small(PG):
+    def build(self):
+        super().build()
+        self.layer_sizes = (128, 128, 128)
+
+
+class PG_nano(PG):
+    def build(self):
+        super().build()
+        self.layer_sizes = (64, 32, 16)
+
+
+class PG_linear(PG):
+    def build(self):
+        super().build()
+        self.layer_sizes = []
+
+
+class ConfigQN(Config):
     def build(self):
         # env config
         self.render_train     = False
         self.render_test      = False
-        # self.overwrite_render = True
-        # self.high             = 255.
 
         # model and training config
         self.num_episodes_test = 50
         self.grad_clip         = True
         self.clip_val          = 10
-        self.saving_freq       = 5000
         self.log_freq          = 50
-        self.eval_freq         = 5000
-        self.soft_epsilon      = 0
+        self.soft_epsilon      = 0.05
 
         # hyper params
-        self.nsteps_train       = 20000
-        self.batch_size         = 128
-        self.buffer_size        = 5000
-        self.target_update_freq = 500
+        self.nsteps_train       = 1e6
+        self.batch_size         = 32
+        self.buffer_size        = 100000
+        self.target_update_freq = 10000
         self.gamma              = 0.95
         self.learning_freq      = 1
-        self.state_history      = 1
-        self.lr_begin           = 0.01
-        self.lr_end             = 0.001
+        self.lr_begin           = 0.001
+        self.lr_end             = 0.0001
         self.lr_nsteps          = self.nsteps_train/2
         self.eps_begin          = 1
         self.eps_end            = 0.1
-        self.eps_nsteps         = self.nsteps_train/4
-        self.learning_start     = 1000
+        self.eps_nsteps         = self.nsteps_train/5
+        self.learning_start     = 50000
+
+        # model and training config
+        self.saving_freq       = self.nsteps_train // 2
+        self.log_freq          = 50
+        self.eval_freq         = self.nsteps_train // 10
 
         # overwrite from general config:
-        self.record_freq = self.nsteps_train // 3
+        self.record_freq = self.nsteps_train // 5
 
 
-class config_linear_qn(config_qn):
+class LinearQN(ConfigQN):
     def build(self):
         super().build()
         self.controller_name = "LinearQN"
 
 
-class config_nature_qn(config_qn):
+class DeepQN(ConfigQN):
     def build(self):
         super().build()
-        self.controller_name = "NatureQN"
+        self.controller_name = "DeepQN"
+        self.layer_sizes = (512, 512, 256)
 
-class config_QLearningMLP(Config):
+
+class DeepQN_small(DeepQN):
+    def build(self):
+        super().build()
+        self.layer_sizes = (128, 128, 128)
+
+
+class DeepQN_nano(DeepQN):
+    def build(self):
+        super().build()
+        self.layer_sizes = (64, 32, 16)
+
+
+class QLearningMLP(Config):
     def build(self):
         self.controller_name = "QLearningMLP"
-        self.hidden_layer_sizes = (700, 500, 300)
+        self.hidden_layer_sizes = (512, 512, 256)
         self.lr = 0.001
         self.gamma = 0.9
         self.epsilon = 1
@@ -167,10 +195,10 @@ class config_QLearningMLP(Config):
         self.batch_size = 4 * 24 * 6  # number of steps used to compute each policy update
         self.record_freq = self.num_batches // 10
 
-class config_SarsaMLP(Config):
+class SarsaMLP(Config):
     def build(self):
         self.controller_name = "SarsaMLP"
-        self.hidden_layer_sizes = (700, 500, 300)
+        self.hidden_layer_sizes = (512, 512, 256)
         self.lr = 0.001
         self.gamma = 0.9
         self.epsilon = 1

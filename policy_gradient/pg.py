@@ -1,8 +1,41 @@
 import numpy as np
 import tensorflow as tf
 
-from policy_gradient.utils_pg import get_logger, Progbar, export_plot, build_mlp
+from policy_gradient.utils_pg import get_logger, Progbar, export_plot
 from meta_controller import MetaController
+
+
+def build_mlp(
+        mlp_input,
+        output_size,
+        scope,
+        layers,
+    ):
+    """
+    Build a feed forward network (multi-layer perceptron, or mlp)
+    with 'n_layers' hidden layers, each of size 'size' units.
+    Use tf.nn.relu nonlinearity between layers.
+    Args:
+        mlp_input: the input to the multi-layer perceptron
+        output_size: the output layer size
+        scope: the scope of the neural network
+        n_layers: the number of hidden layers of the network
+        size: the size of each layer:
+        output_activation: the activation of output layer
+    Returns:
+        The tensor output of the network
+
+    A network with n hidden layers has n 'linear transform + nonlinearity'
+    operations followed by the final linear transform for the output layer
+    (followed by the output activation, if it is not None).
+
+    """
+    with tf.variable_scope(scope):
+        inputs = mlp_input
+        for size in layers:
+            inputs = tf.layers.dense(inputs, units=size, activation=tf.nn.relu)
+        output = tf.layers.dense(inputs, units=output_size, activation=None)
+    return output
 
 
 class PG(MetaController):
@@ -73,7 +106,9 @@ class PG(MetaController):
             tf.multinomial(
                 logits=action_logits,
                 num_samples=1,
-            ), axis=-1)
+            ),
+            axis=-1
+        )
 
     def sample_action_continuous(self, action_means, std):
         return action_means + std * tf.random_normal(
@@ -101,9 +136,7 @@ class PG(MetaController):
                 mlp_input=self.observation_placeholder,
                 output_size=self.action_dim,
                 scope=scope,
-                n_layers=self.config.n_layers,
-                size=self.config.layer_size,
-                output_activation=None
+                layers=self.config.layer_sizes,
             )
             self.sampled_action = self.sample_action_discrete(action_logits)
             # self.determ_action = tf.argmax(action_logits, axis=-1)
@@ -118,9 +151,7 @@ class PG(MetaController):
                 mlp_input=self.observation_placeholder,
                 output_size=self.action_dim,
                 scope=scope,
-                n_layers=self.config.n_layers,
-                size=self.config.layer_size,
-                output_activation=None
+                layers=self.config.layer_sizes,
             )
             log_std = tf.get_variable(
                 name="log_std",
@@ -171,14 +202,13 @@ class PG(MetaController):
             scope: the scope of the baseline network
 
         """
-        self.baseline = tf.squeeze(build_mlp(
-            mlp_input=self.observation_placeholder,
-            output_size=1,
-            scope=scope,
-            n_layers=self.config.n_layers,
-            size=self.config.layer_size,
-            output_activation=None
-        ),
+        self.baseline = tf.squeeze(
+            build_mlp(
+                mlp_input=self.observation_placeholder,
+                output_size=1,
+                scope=scope,
+                layers=self.config.layer_sizes,
+            ),
             axis=-1
         )
         self.baseline_target_placeholder = tf.placeholder(tf.float32, shape=(None), name="baseline_target")

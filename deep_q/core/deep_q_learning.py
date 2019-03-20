@@ -13,7 +13,7 @@ class DQN(QN):
     def add_placeholders_op(self):
         raise NotImplementedError
 
-    def get_q_values_op(self, scope, reuse=False):
+    def get_q_values_op(self, state, scope, reuse=False):
         """
         set Q values, of shape = (batch_size, num_actions)
         """

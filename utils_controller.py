@@ -175,5 +175,7 @@ def _save_statistics(stats, out_path, evaluation):
 def save_object(obj, out_path, name):
     name = "{}.json".format(name)
     outfile = os.path.join(out_path, name)
+    obj_dict = obj.__dict__
+    print(obj_dict)
     with open(outfile, 'w') as f_out:
-        json.dump(obj.__dict__, f_out, sort_keys=True, indent=4, separators=(',', ': '))
+        json.dump(obj_dict, f_out, sort_keys=True, indent=4, separators=(',', ': '))

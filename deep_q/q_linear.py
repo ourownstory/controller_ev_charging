@@ -15,7 +15,6 @@ class LinearQN(DQN):
         data during training.
         """
         # state_shape = list(self.env.observation_space.shape)
-
         self.s = tf.placeholder("float32", shape=(None, self.observation_dim))
         self.a = tf.placeholder("int32", shape=(None))
         self.r = tf.placeholder("float32", shape=(None))
@@ -51,11 +50,9 @@ class LinearQN(DQN):
         update_target_op will be called periodically 
         to copy Q network weights to target Q network
 
-        Remember that in DQN, we maintain two identical Q networks with
+        In DQN, we maintain two identical Q networks with
         2 different sets of weights. In tensorflow, we distinguish them
-        with two different scopes. If you're not familiar with the scope mechanism
-        in tensorflow, read the docs
-        https://www.tensorflow.org/programmers_guide/variable_scope
+        with two different scopes.
 
         Periodically, we need to update all the weights of the Q network 
         and assign them with the values from the regular network. 
@@ -64,12 +61,10 @@ class LinearQN(DQN):
             target_q_scope: (string) name of the scope of variables
                         for the target network
         """
-
         q_collection = tf.get_collection(key=tf.GraphKeys.GLOBAL_VARIABLES, scope=q_scope)
         target_q_collection = tf.get_collection(key=tf.GraphKeys.GLOBAL_VARIABLES, scope=target_q_scope)
         assign_list = [tf.assign(ref=target_var, value=var) for var, target_var in zip(q_collection, target_q_collection)]
         self.update_target_op = tf.group(*assign_list)
-
 
     def add_loss_op(self, q, target_q):
         """
@@ -79,7 +74,6 @@ class LinearQN(DQN):
             q: (tf tensor) shape = (batch_size, num_actions)
             target_q: (tf tensor) shape = (batch_size, num_actions)
         """
-        # you may need this variable
         num_actions = self.env.action_space.n
 
         q_t_max = tf.reduce_max(target_q, axis=-1)
@@ -96,7 +90,6 @@ class LinearQN(DQN):
         Args:
             scope: (string) scope name, that specifies if target network or not
         """
-
         optimizer = tf.train.AdamOptimizer(self.lr)
         var_list = tf.get_collection(key=tf.GraphKeys.GLOBAL_VARIABLES, scope=scope)
         gradients, variables = zip(*optimizer.compute_gradients(self.loss, var_list))
