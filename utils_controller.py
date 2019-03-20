@@ -140,10 +140,10 @@ def print_statistics(rewards, paths, config, logger, env):
     msgs.append("Tot charge completion (sum(energy_deliv/best_possible)) [1]: {}".format(tot_charge_percent))
 
     avg_elec_cost_per_day = avg_elec_cost_per_time_step * 24 / env.time_step
-    msgs.append("Avg elec cost per day [reward_elec/day]: {}".format(avg_elec_cost_per_day))
+    msgs.append("Avg elec cost per day [$/day]: {}".format(avg_elec_cost_per_day))
 
     avg_elec_price_per_day = np.sum(elec_costs)/np.sum(tot_energy_delivered)
-    msgs.append("Avg elec price per day [reward_elec/kWh/day]: {}".format(avg_elec_price_per_day))
+    msgs.append("Avg elec price [$/kWh]: {}".format(avg_elec_price_per_day))
 
     for msg in msgs:
         logger.info(msg)
