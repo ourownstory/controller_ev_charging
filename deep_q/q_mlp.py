@@ -14,7 +14,7 @@ class QLearningMLP(MetaController):
 
     def get_action(self, state):
         a = np.zeros(self.env.num_stations)
-        fs = np.reshape(featurize_cont(state), (1, -1))
+        fs = np.reshape(featurize_cont(state, dow_one_hot=True), (1, -1))
         out = self.model.predict(fs)
         idxs = np.cumsum([0] + [self.env.config.NUM_POWER_STEPS] * self.env.num_stations)
         if np.random.rand() < 0.997**self.epsilon:
@@ -55,8 +55,8 @@ class QLearningMLP(MetaController):
             rewards = np.concatenate([path["reward"] for path in paths])[:-1]
 
             # run training operations
-            fs_list = [featurize_cont(s) for s in observations]
-            fsp_list = [featurize_cont(sp) for sp in observations_p]
+            fs_list = [featurize_cont(s, dow_one_hot=True) for s in observations]
+            fsp_list = [featurize_cont(sp, dow_one_hot=True) for sp in observations_p]
             pred_fs = self.model.predict(fs_list)
             pred_fsp = self.model.predict(fsp_list)
 

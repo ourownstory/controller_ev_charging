@@ -3,10 +3,14 @@ from gym_utils import featurize_cont
 import numpy as np
 from sklearn import neural_network
 
-class SarsaMLP(MetaController):
+class QLearningMLPDouble(MetaController):
     def build(self):
-        self.model = neural_network.MLPRegressor(hidden_layer_sizes=self.config.hidden_layer_sizes)
+        self.model = neural_network.MLPRegressor(self.config.hidden_layer_sizes)
         self.model.fit(np.reshape(np.zeros(self.observation_dim), (1, -1)), np.reshape(np.zeros(self.action_dim), (1, -1)))
+        self.model2 = neural_network.MLPRegressor(self.config.hidden_layer_sizes)
+        self.model2.fit(np.reshape(np.zeros(self.observation_dim), (1, -1)),
+                       np.reshape(np.zeros(self.action_dim), (1, -1)))
+
         self.lr = self.config.lr
         self.gamma = self.config.gamma
         self.epsilon = self.config.epsilon
@@ -16,6 +20,7 @@ class SarsaMLP(MetaController):
         a = np.zeros(self.env.num_stations)
         fs = np.reshape(featurize_cont(state, dow_one_hot=True), (1, -1))
         out = self.model.predict(fs)
+        out2 = self.model.predict(fs)
         idxs = np.cumsum([0] + [self.env.config.NUM_POWER_STEPS] * self.env.num_stations)
         if np.random.rand() < 0.997**self.epsilon:
             for i, station in enumerate(state['stations']):
@@ -24,7 +29,7 @@ class SarsaMLP(MetaController):
         else:
             for i, station in enumerate(state['stations']):
                 if station['is_car'] and station['per_char'] < 1.0:
-                    a_idx = np.argmax(out[0][idxs[i]:idxs[i+1]])
+                    a_idx = np.argmax(out[0][idxs[i]:idxs[i+1]] + out2[0][idxs[i]:idxs[i+1]])
                     a[i] = self.env.actions[i][a_idx]
 
         return self.rev_action_map[tuple(a)]
@@ -59,15 +64,23 @@ class SarsaMLP(MetaController):
             fsp_list = [featurize_cont(sp, dow_one_hot=True) for sp in observations_p]
             pred_fs = self.model.predict(fs_list)
             pred_fsp = self.model.predict(fsp_list)
+            pred_fs2 = self.model.predict(fs_list)
+            pred_fsp2 = self.model.predict(fsp_list)
 
             masks = np.zeros((len(actions), np.prod([self.env.config.NUM_POWER_STEPS] * self.env.num_stations)))
             for i, a in enumerate(actions):
                 masks[i, a] = 1
-            masks_p = np.vstack((np.copy(masks)[1:, :], np.copy(masks)[-1:, :]))
 
-            self.model.partial_fit(fs_list,
-                                   pred_fs + self.lr * masks * ((np.array(rewards) + self.gamma * np.sum(
-                                       pred_fsp * masks_p, axis=1)).reshape(-1, 1) - pred_fs))
+            if np.random.rand() < 0.5:
+                self.model.partial_fit(fs_list,
+                                       pred_fs + self.lr * masks * (
+                                                   (np.array(rewards) + self.gamma * np.amax(pred_fsp2, axis=1)).reshape(-1,
+                                                                                                                       1) - pred_fs))
+            else:
+                self.model2.partial_fit(fs_list,
+                                       pred_fs2 + self.lr * masks * (
+                                                   (np.array(rewards) + self.gamma * np.amax(pred_fsp, axis=1)).reshape(-1,
+                                                                                                                       1) - pred_fs2))
 
             # tf stuff
             if (t % self.config.summary_freq == 0):
@@ -77,8 +90,7 @@ class SarsaMLP(MetaController):
                 avg_reward = np.mean(total_rewards)
                 sigma_reward = np.sqrt(np.var(total_rewards) / len(total_rewards))
                 msg = "Average reward: {:9.1f} +/- {:.2f}; batch {}/{}; epsilon={:.2f}".format(avg_reward, sigma_reward, t,
-                                                                                           self.config.num_batches,
-                                                                                           0.997 ** self.epsilon)
+                                                                                           self.config.num_batches, 0.997**self.epsilon)
                 self.logger.info(msg)
 
             if self.config.record and (last_record >= self.config.record_freq):

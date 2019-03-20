@@ -185,9 +185,8 @@ class DeepQN_nano(DeepQN):
 class QLearningMLP(Config):
     def build(self):
         self.controller_name = "QLearningMLP"
-        self.hidden_layer_sizes = (512, 512, 256)
+        self.hidden_layer_sizes = (700, 500, 300)
         self.lr = 0.001
-        # self.gamma = 0.9
         self.epsilon = 1
 
         self.num_batches = 1000  # number of batches trained on
@@ -198,11 +197,33 @@ class QLearningMLP(Config):
 class SarsaMLP(Config):
     def build(self):
         self.controller_name = "SarsaMLP"
-        self.hidden_layer_sizes = (512, 512, 256)
+        self.hidden_layer_sizes = (700, 500, 300)
         self.lr = 0.001
-        # self.gamma = 0.9
         self.epsilon = 1
 
         self.num_batches = 1000  # number of batches trained on
         self.batch_size = 4 * 24 * 6  # number of steps used to compute each policy update
         self.record_freq = self.num_batches // 10
+
+class QLearningMLPDouble(Config):
+    def build(self):
+        self.controller_name = "QLearningMLPDouble"
+        self.hidden_layer_sizes = (700, 500, 300)
+        self.lr = 0.001
+        self.epsilon = 1
+
+        self.num_batches = 1000  # number of batches trained on
+        self.batch_size = 4 * 24 * 6  # number of steps used to compute each policy update
+        self.record_freq = self.num_batches // 10
+
+class SarsaMLPDouble(Config):
+    def build(self):
+        self.controller_name = "SarsaMLPDouble"
+        self.hidden_layer_sizes = (700, 500, 300)
+        self.lr = 0.001
+        self.epsilon = 1
+
+        self.num_batches = 1000  # number of batches trained on
+        self.batch_size = 4 * 24 * 6  # number of steps used to compute each policy update
+        self.record_freq = self.num_batches // 10
+
