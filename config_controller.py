@@ -71,12 +71,12 @@ class PG(Config):
         self.normalize_advantage = True
 
         # model and training config
-        self.num_batches = 100  # number of batches trained on
+        self.num_batches = 500  # number of batches trained on
         self.batch_size = 4 * 24 * 100  # number of steps used to compute each policy update
 
-        self.learning_rate = 0.03
+        self.learning_rate = 0.01
         # self.gamma = 0.8  # the discount factor
-        self.gamma = 0.95  # the discount factor
+        # self.gamma = 0.95  # the discount factor
         # self.gamma = 1  # the discount factor
 
         # parameters for the policy and baseline models
@@ -90,7 +90,7 @@ class PG(Config):
 class PG_small(PG):
     def build(self):
         super().build()
-        self.layer_sizes = (128, 128, 128)
+        self.layer_sizes = (128, 128, 64)
 
 
 class PG_nano(PG):
@@ -137,7 +137,7 @@ class ConfigQN(Config):
         self.buffer_size        = 200000
         self.target_update_freq = 10000
         # self.gamma              = 0.8 # the discount factor
-        self.gamma              = 0.95 # the discount factor
+        # self.gamma              = 0.95 # the discount factor
         # self.gamma              = 1
         self.learning_freq      = 1
         self.lr_begin           = 0.003
@@ -173,7 +173,7 @@ class DeepQN(ConfigQN):
 class DeepQN_small(DeepQN):
     def build(self):
         super().build()
-        self.layer_sizes = (128, 128, 128)
+        self.layer_sizes = (128, 128, 64)
 
 
 class DeepQN_nano(DeepQN):
@@ -187,19 +187,20 @@ class QLearningMLP(Config):
         self.controller_name = "QLearningMLP"
         self.hidden_layer_sizes = (512, 512, 256)
         self.lr = 0.001
-        self.gamma = 0.9
+        # self.gamma = 0.9
         self.epsilon = 1
 
         self.num_batches = 1000  # number of batches trained on
         self.batch_size = 4 * 24 * 6  # number of steps used to compute each policy update
         self.record_freq = self.num_batches // 10
 
+
 class SarsaMLP(Config):
     def build(self):
         self.controller_name = "SarsaMLP"
         self.hidden_layer_sizes = (512, 512, 256)
         self.lr = 0.001
-        self.gamma = 0.9
+        # self.gamma = 0.9
         self.epsilon = 1
 
         self.num_batches = 1000  # number of batches trained on

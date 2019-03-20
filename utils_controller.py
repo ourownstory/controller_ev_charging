@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import json
 import os
-# plt.switch_backend("TkAgg")
+plt.switch_backend("TkAgg")
 from pandas.plotting import register_matplotlib_converters
 register_matplotlib_converters()
 import matplotlib.dates as mdates
@@ -83,7 +83,7 @@ def _plot_episode(plot_data, title, env, out_dir):
     # self.config.plot_output
     filename = out_dir + title
     plt.savefig(filename)
-    plt.show()
+    # plt.show()
     plt.close()
 
 
@@ -111,7 +111,7 @@ def price_energy_histogram(paths, plot_dir, contr_name, mode, num_bins=10):
     title = "{}_energy_price_hist.png".format(mode)
     filename = plot_dir + title
     plt.savefig(filename)
-    plt.show()
+    # plt.show()
     plt.close()
 
 

@@ -1,8 +1,8 @@
 import argparse
 import gym
-# import gym_ev_charging
-# import sys
-# sys.path.append('../gym_ev_charging')
+import sys
+sys.path.append('../gym_ev_charging')
+import gym_ev_charging
 
 from config_controller import get_config as get_controller_config
 from gym_ev_charging.config_gym import get_config as get_gym_config
@@ -22,6 +22,8 @@ def get_configs():
     # sync episode lengths
     config.max_ep_len = env_config.EPS_LEN
     config.max_ep_len_eval = env_config.EVAL_EPS_LEN
+    # overwrite gamma for experiments
+    config.gamma = env_config.gamma
     # save to JSON
     out_path = config.output_path
     utils.save_object(config, out_path, name="config_controller")
