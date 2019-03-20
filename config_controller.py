@@ -35,7 +35,7 @@ class Config(ABC):
         # for evaluation
         self.eval_episodes = 1000  # how many episodes to sample from eval set.
         self.record_episodes = 100  # to compute stats when record is triggered
-        self.plots_per_record = 5  # how many plots to save per recording
+        self.plots_per_record = 10  # how many plots to save per recording
 
         self.build()
 
@@ -75,7 +75,9 @@ class PG(Config):
         self.batch_size = 4 * 24 * 100  # number of steps used to compute each policy update
 
         self.learning_rate = 0.03
-        self.gamma = 0.9  # the discount factor
+        # self.gamma = 0.8  # the discount factor
+        self.gamma = 0.95  # the discount factor
+        # self.gamma = 1  # the discount factor
 
         # parameters for the policy and baseline models
         self.layer_sizes = (512, 512, 256)
@@ -95,6 +97,19 @@ class PG_nano(PG):
     def build(self):
         super().build()
         self.layer_sizes = (64, 32, 16)
+
+
+class PG_nano_long(PG):
+    def build(self):
+        super().build()
+        self.layer_sizes = (64, 32, 16)
+
+        # model and training config
+        self.num_batches = 10000  # number of batches trained on
+        self.batch_size = 4 * 24  # number of steps used to compute each policy update
+
+        self.learning_rate = 0.001
+        self.record_freq = self.num_batches // 10
 
 
 class PG_linear(PG):
@@ -117,18 +132,20 @@ class ConfigQN(Config):
         self.soft_epsilon      = 0.05
 
         # hyper params
-        self.nsteps_train       = 1e6
+        self.nsteps_train       = 5e5
         self.batch_size         = 32
-        self.buffer_size        = 100000
+        self.buffer_size        = 200000
         self.target_update_freq = 10000
-        self.gamma              = 0.95
+        # self.gamma              = 0.8 # the discount factor
+        self.gamma              = 0.95 # the discount factor
+        # self.gamma              = 1
         self.learning_freq      = 1
-        self.lr_begin           = 0.001
-        self.lr_end             = 0.0001
+        self.lr_begin           = 0.003
+        self.lr_end             = 0.0003
         self.lr_nsteps          = self.nsteps_train/2
         self.eps_begin          = 1
-        self.eps_end            = 0.1
-        self.eps_nsteps         = self.nsteps_train/5
+        self.eps_end            = 0.03
+        self.eps_nsteps         = self.nsteps_train/4
         self.learning_start     = 50000
 
         # model and training config
