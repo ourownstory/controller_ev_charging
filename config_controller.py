@@ -71,10 +71,10 @@ class PG(Config):
         self.normalize_advantage = True
 
         # model and training config
-        self.num_batches = 500  # number of batches trained on
+        self.num_batches = 100  # number of batches trained on
         self.batch_size = 4 * 24 * 100  # number of steps used to compute each policy update
 
-        self.learning_rate = 0.01
+        self.learning_rate = 0.03
         # self.gamma = 0.8  # the discount factor
         # self.gamma = 0.95  # the discount factor
         # self.gamma = 1  # the discount factor
