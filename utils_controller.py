@@ -17,15 +17,17 @@ def _plot_with_infos(infos, title, env, out_dir):
     # actually plot
     _plot_episode(plot_data, title, env, out_dir)
 
-def plot_episodes(paths, train_step, env, out_dir, num=None, evaluation=False):
+
+def plot_episodes(paths, train_step, env, out_dir, num=None):
     if num is None:
         num = len(paths)
     for e in range(num):
         path = paths[e]
         infos = path['infos']
-        mode = 'Eval' if evaluation else 'Train'
+        mode = 'Eval' if env.evaluation_mode else 'Train'
         title = "{} Step {}, Episode {}".format(mode, train_step, e)
         _plot_with_infos(infos, title, env, out_dir)
+
 
 def _plot_episode(plot_data, title, env, out_dir):
     f, axarr = plt.subplots(env.num_stations, sharex=True, figsize=(14,7))
@@ -109,7 +111,7 @@ def price_energy_histogram(paths, plot_dir, num_bins=10):
     plt.show()
 
 
-def print_evaluation_statistics(rewards, paths, config, logger, env):
+def print_statistics(rewards, paths, config, logger, env):
     infos = [info for path in paths for info in path['infos']]
     # price_energy_histogram(infos, num_bins=20)
     # _plot_with_infos(infos, 'Eval', env, config.plot_output)
@@ -117,18 +119,21 @@ def print_evaluation_statistics(rewards, paths, config, logger, env):
     rewards = np.array(rewards) * config.max_ep_len / config.max_ep_len_eval
     avg_reward = np.mean(rewards)
     sigma_reward = np.sqrt(np.var(rewards) / len(rewards))
-    msg = "Evaluation reward: {:9.1f} +/- {:.2f}".format(avg_reward, sigma_reward)
+
+    mode = "Eval" if env.evaluation_mode else "Training"
+    msg = "{} reward: {:9.1f} +/- {:.2f}".format(mode, avg_reward, sigma_reward)
     logger.info(msg)
     #compute price per day and average percent best possible charge
     best_possible_percents, prices = [], []
     for info in infos:
-        best_possible_percents.extend(info['finished_cars_stats'])
+        # best_possible_percents.extend(info['finished_cars_stats'])
         prices.append(info['elec_cost'])
-    avg_percent, avg_price = np.mean(best_possible_percents), np.mean(prices)
-    sigma_percent = np.sqrt(np.var(best_possible_percents) / len(best_possible_percents))
-    avg_daily_price = avg_price*24/env.time_step
-    msg = "Avg best possible charge percentage:  {:9.1f} +/- {:.2f}".format(avg_percent, sigma_percent)
-    logger.info(msg)      
+    # avg_percent = np.mean(best_possible_percents),
+    # sigma_percent = np.sqrt(np.var(best_possible_percents) / len(best_possible_percents))
+    # msg = "Avg best possible charge percentage:  {:9.1f} +/- {:.2f}".format(avg_percent, sigma_percent)
+    # logger.info(msg)
+
+    avg_daily_price = np.mean(prices) * 24 / env.time_step
     msg = "Avg daily price: {}".format(avg_daily_price)
     logger.info(msg)
     return avg_reward

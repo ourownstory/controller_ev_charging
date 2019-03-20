@@ -25,9 +25,7 @@ def run_experiment():
     model.run_training()
 
     # eval
-    env_eval = gym.make(env_config.ENV_NAME)
-    env_eval.build(env_config)
-    model.run_evaluation(env_eval, num_episodes=config.eval_episodes)
+    model.run_evaluation(num_episodes=config.eval_episodes)
 
 
 if __name__ == '__main__':

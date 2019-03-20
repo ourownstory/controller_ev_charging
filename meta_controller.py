@@ -185,10 +185,8 @@ class MetaController(ABC):
         Recreate an env and record a gameplay for one episode
         """
         self.logger.info("Recording.")
-        new_env_config = self.env.config
-        env = gym.make(new_env_config.ENV_NAME)
-        env.build(new_env_config)
-        env.reset()
+        env = gym.make(self.env.config.ENV_NAME)
+        env.build(self.env.config)
         env.evaluation_mode = evaluation
 
         # play according to policy
@@ -197,8 +195,8 @@ class MetaController(ABC):
             max_ep_len=self.config.max_ep_len,
             num_episodes=self.config.plots_per_record
         )
-        utils.plot_episodes(paths, self.total_train_steps, env, self.config.plot_output, evaluation=evaluation)
-        utils.print_evaluation_statistics(rewards, paths, self.config, self.logger, env)
+        utils.plot_episodes(paths, self.total_train_steps, env, self.config.plot_output)
+        utils.print_statistics(rewards, paths, self.config, self.logger, env)
 
     def run_training(self):
         """
@@ -230,7 +228,6 @@ class MetaController(ABC):
             env = gym.make(new_env_config.ENV_NAME)
             env.build(new_env_config)
         else:
-            # env = self.env
             env.reset()
         env.evaluation_mode = True
         # sample
@@ -241,11 +238,7 @@ class MetaController(ABC):
         )
         # plot
         utils.plot_episodes(
-            paths[:self.config.plots_per_record],
-            self.total_train_steps,
-            env,
-            self.config.plot_output,
-            evaluation=True
+            paths[:self.config.plots_per_record], self.total_train_steps, env, self.config.plot_output,
         )
         utils.price_energy_histogram(paths, self.config.plot_output)
-        utils.print_evaluation_statistics(rewards, paths, self.config, self.logger, env)
+        utils.print_statistics(rewards, paths, self.config, self.logger, env)

@@ -42,7 +42,7 @@ class Config(ABC):
         self.show_plots = True
 
         # for evaluation
-        self.eval_episodes = 10
+        self.eval_episodes = 100
         self.plots_per_record = 5
 
         self.build()
