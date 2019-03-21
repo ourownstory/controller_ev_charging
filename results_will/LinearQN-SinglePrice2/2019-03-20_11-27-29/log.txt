@@ -1,2 +1,0 @@
-2019-03-20 11:27:30,338:INFO: Recording.
-2019-03-20 11:27:30,338:INFO: Making new env: ev-charging-v0
