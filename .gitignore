@@ -1,0 +1,7 @@
+*.idea
+.*
+__py*
+*results/*
+*/results/*
+*.sh
+runs_*
