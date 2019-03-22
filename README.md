@@ -1,5 +1,5 @@
 # Reinforcement Learning Experiment Wrapper & Controllers for gym_ev_charging
-Read the report.pdf
+Read the report.pdf or Project Poster
 
 See other repository gym_ev_charging. https://github.com/ourownstory/gym_ev_charging
 
